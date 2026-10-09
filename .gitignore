@@ -1,0 +1,5 @@
+node_modules/
+.next/
+.env*
+dados/*
+!dados/LEIA-ME.txt

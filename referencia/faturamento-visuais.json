@@ -1,0 +1,356 @@
+[
+  {
+    "id": "0b99ce65852ab3492471",
+    "type": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "fields": [
+      "FATURAMENTO MES.%DIFERENÇA FATURAMENTO VLR"
+    ],
+    "position": {
+      "x": 1174.7124538612607,
+      "y": 791.6524211577353,
+      "z": 6000,
+      "height": 115.71428571428572,
+      "width": 370,
+      "tabOrder": 6000
+    }
+  },
+  {
+    "id": "101e212d089e98e08d69",
+    "type": "shape",
+    "fields": [],
+    "position": {
+      "x": 285,
+      "y": 0,
+      "z": 11000,
+      "height": 67.5,
+      "width": 265,
+      "tabOrder": 11000
+    }
+  },
+  {
+    "id": "1647ad809686e1298a3b",
+    "type": "image",
+    "fields": [],
+    "position": {
+      "x": 45,
+      "y": 35,
+      "z": 0,
+      "height": 145,
+      "width": 195,
+      "tabOrder": 0
+    }
+  },
+  {
+    "id": "1ca8c6002c5857d00aa2",
+    "type": "slicer",
+    "fields": [
+      "CAD_REPRESENTANTE.Supervisor"
+    ],
+    "position": {
+      "x": 35,
+      "y": 200,
+      "z": 3000,
+      "height": 104,
+      "width": 1530,
+      "tabOrder": 3000
+    }
+  },
+  {
+    "id": "252825e662b4ddd87c5c",
+    "type": "actionButton",
+    "fields": [],
+    "position": {
+      "x": 1300,
+      "y": 110,
+      "z": 22000,
+      "height": 40,
+      "width": 300,
+      "tabOrder": 22000
+    }
+  },
+  {
+    "id": "26f78d19319e30daa07c",
+    "type": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "fields": [
+      "Sum(METAS FATURAMENTO.META_VALOR)"
+    ],
+    "position": {
+      "x": 13.341793570219961,
+      "y": 789.8857868020297,
+      "z": 2000,
+      "height": 116,
+      "width": 370,
+      "tabOrder": 2000
+    }
+  },
+  {
+    "id": "2ce195470420a56097cc",
+    "type": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "fields": [
+      "FATURAMENTO MES.DIFERENÇA FATURAMENTO VLR"
+    ],
+    "position": {
+      "x": 788.34179357022,
+      "y": 789.8857868020297,
+      "z": 5000,
+      "height": 115.71428571428572,
+      "width": 370,
+      "tabOrder": 5000
+    }
+  },
+  {
+    "id": "3a533d7371d7a088961d",
+    "type": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "fields": [
+      "Sum(FATURAMENTO MES.Vlr Venda)"
+    ],
+    "position": {
+      "x": 395.84179357022003,
+      "y": 789.8857868020297,
+      "z": 4000,
+      "height": 115,
+      "width": 370,
+      "tabOrder": 4000
+    }
+  },
+  {
+    "id": "5d286b4e079160da4800",
+    "type": "shape",
+    "fields": [],
+    "position": {
+      "x": 1335,
+      "y": -0.3571428571428572,
+      "z": 7000,
+      "height": 67.5,
+      "width": 265,
+      "tabOrder": 7000
+    }
+  },
+  {
+    "id": "6341e79be05b07033332",
+    "type": "shape",
+    "fields": [],
+    "position": {
+      "x": 46.02368866328258,
+      "y": 928.5956006768183,
+      "z": 12000,
+      "height": 54,
+      "width": 264,
+      "tabOrder": 12000
+    }
+  },
+  {
+    "id": "6448d464c1039b843ac3",
+    "type": "shape",
+    "fields": [],
+    "position": {
+      "x": 812.8571428571429,
+      "y": 0,
+      "z": 9000,
+      "height": 67.5,
+      "width": 265,
+      "tabOrder": 9000
+    }
+  },
+  {
+    "id": "779d9fc41dc809c2b100",
+    "type": "textbox",
+    "fields": [],
+    "position": {
+      "x": 252.5,
+      "y": 80,
+      "z": 1000,
+      "height": 99.10761154855642,
+      "width": 858.3727034120734,
+      "tabOrder": 1000
+    }
+  },
+  {
+    "id": "8c3d662e6e98e2a45070",
+    "type": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "fields": [
+      "Sum(FATURAMENTO MES.Vlr Venda AA)"
+    ],
+    "position": {
+      "x": 398.52472039948833,
+      "y": 924.2760307044691,
+      "z": 16000,
+      "height": 115,
+      "width": 370,
+      "tabOrder": 16000
+    }
+  },
+  {
+    "id": "904b3f1000010c52508e",
+    "type": "shape",
+    "fields": [],
+    "position": {
+      "x": 1077.5755889461589,
+      "y": -0.3571428571428572,
+      "z": 10000,
+      "height": 67.5,
+      "width": 265,
+      "tabOrder": 10000
+    }
+  },
+  {
+    "id": "9b5ecb022d6dd45a6ab4",
+    "type": "tableEx",
+    "fields": [
+      "CAD_REPRESENTANTE.Nome Rep",
+      "Sum(METAS FATURAMENTO.META_VALOR)",
+      "Sum(FATURAMENTO MES.Vlr Venda)",
+      "FATURAMENTO MES.DIFERENÇA FATURAMENTO VLR",
+      "FATURAMENTO MES.%DIFERENÇA FATURAMENTO VLR",
+      "FATURAMENTO MES.Column17",
+      "Sum(FATURAMENTO MES.Vlr Venda AA)",
+      "Sum(FATURAMENTO MES.Preco Medio Venda AA)",
+      "FATURAMENTO MES.%DIFERENÇA FATURAMENTO VLR AA"
+    ],
+    "position": {
+      "x": 0,
+      "y": 1322,
+      "z": 22001,
+      "height": 678,
+      "width": 1534,
+      "tabOrder": 22001
+    }
+  },
+  {
+    "id": "a30e1429d5688dd2e9d5",
+    "type": "shape",
+    "fields": [],
+    "position": {
+      "x": 46.02368866328258,
+      "y": 985.4483925549908,
+      "z": 13000,
+      "height": 54,
+      "width": 264,
+      "tabOrder": 13000
+    }
+  },
+  {
+    "id": "a73146638150c25cdd44",
+    "type": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "fields": [
+      "CAD_REPRESENTANTE.REGIAL FAT"
+    ],
+    "position": {
+      "x": 35,
+      "y": 332.5,
+      "z": 15000,
+      "height": 115,
+      "width": 1530,
+      "tabOrder": 15000
+    }
+  },
+  {
+    "id": "a742a712309db94ccd24",
+    "type": "slicer",
+    "fields": [
+      "METAS FATURAMENTO.Nome Rep"
+    ],
+    "position": {
+      "x": 35,
+      "y": 482.5,
+      "z": 19000,
+      "height": 105,
+      "width": 1530,
+      "tabOrder": 19000
+    }
+  },
+  {
+    "id": "a899fbe0994471da1da4",
+    "type": "tableEx",
+    "fields": [
+      "CAD_REPRESENTANTE.Supervisor",
+      "Sum(METAS FATURAMENTO.META_VALOR)",
+      "Sum(FATURAMENTO MES.Vlr Venda)",
+      "FATURAMENTO MES.DIFERENÇA FATURAMENTO VLR",
+      "FATURAMENTO MES.%DIFERENÇA FATURAMENTO VLR",
+      "FATURAMENTO MES.Column17",
+      "Sum(FATURAMENTO MES.Vlr Venda AA)",
+      "Sum(FATURAMENTO MES.Preco Medio Venda AA)",
+      "FATURAMENTO MES.%DIFERENÇA FATURAMENTO VLR AA"
+    ],
+    "position": {
+      "x": 12,
+      "y": 1076,
+      "z": 14000,
+      "height": 290,
+      "width": 1534,
+      "tabOrder": 14000
+    }
+  },
+  {
+    "id": "a8e78a19518c10682bc3",
+    "type": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "fields": [
+      "FATURAMENTO MES.%DIFERENÇA FATURAMENTO VLR AA"
+    ],
+    "position": {
+      "x": 1177.3953806905288,
+      "y": 926.0426650601746,
+      "z": 18000,
+      "height": 115.71428571428572,
+      "width": 370,
+      "tabOrder": 18000
+    }
+  },
+  {
+    "id": "aafc13d7109cb8755c37",
+    "type": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "fields": [
+      "FATURAMENTO MES.DIFERENÇA FATURAMENTO VLR AA"
+    ],
+    "position": {
+      "x": 791.0247203994879,
+      "y": 924.2760307044691,
+      "z": 17000,
+      "height": 115.71428571428572,
+      "width": 370,
+      "tabOrder": 17000
+    }
+  },
+  {
+    "id": "c607b6ffed00a8ea3720",
+    "type": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "fields": [
+      "CAD_REPRESENTANTE.REGIAL FAT REP"
+    ],
+    "position": {
+      "x": 35,
+      "y": 605,
+      "z": 20000,
+      "height": 115,
+      "width": 1530,
+      "tabOrder": 20000
+    }
+  },
+  {
+    "id": "e604cdf6eb22c3b08900",
+    "type": "shape",
+    "fields": [],
+    "position": {
+      "x": 550.856838946159,
+      "y": 0,
+      "z": 8000,
+      "height": 67.5,
+      "width": 265,
+      "tabOrder": 8000
+    }
+  },
+  {
+    "id": "f75ddb562d60826c0365",
+    "type": "actionButton",
+    "fields": [],
+    "position": {
+      "x": 1300,
+      "y": 68,
+      "z": 21000,
+      "height": 50,
+      "width": 300,
+      "tabOrder": 21000
+    }
+  }
+]

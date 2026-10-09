@@ -1,0 +1,1 @@
+Coloque nesta pasta os arquivos FATURAMENTO MES.xlsx, METAS FATURAMENTO.xlsx e CAD_REPRESENTANTE.xlsx (ou CSV/Parquet com mesmo nome-base). Não envie dados comerciais sensíveis para repositório público.
