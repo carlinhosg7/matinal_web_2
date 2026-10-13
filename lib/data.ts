@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import * as XLSX from 'xlsx';
 import { parquetRead } from 'hyparquet';
@@ -44,7 +44,7 @@ export async function lerArquivo(nome: string, aba?: string, linhaCabecalho = 0)
   if (ext === '.parquet') {
     const b = fs.readFileSync(completo);
     const linhas: Registro[] = [];
-    await parquetRead({ file: b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), onComplete: data => { linhas.push(...data as Registro[]); } });
+    await parquetRead({ file: b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), onComplete: data => { linhas.push(...(data as unknown as Registro[])); } });
     return linhas;
   }
   if (ext === '.csv') {
@@ -72,3 +72,4 @@ export async function carregarIndicadoresMes(): Promise<Registro[]> {
   const linhas = await lerArquivo(nome, 'MES', 2);
   return linhas.filter(r => /^\d+$/.test(String(campo(r, 'Codigo Representante') ?? '').trim()));
 }
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {useCallback, useRef, useState, type MouseEvent, type ReactNode} from 'react';
 
@@ -35,7 +35,7 @@ export default function SortableTable({children}: {children:ReactNode}) {
   const ordenar=useCallback((coluna:number,direcao:Direcao)=>{
     const table=ref.current;
     const tbody=table?.tBodies.item(0);
-    if(!tbody)return;
+    if(!table || !tbody)return;
     const linhas=Array.from(tbody.rows);
     const fixas=linhas.filter(row=>row.classList.contains('en-total') || row.classList.contains('co-total') || row.classList.contains('fat-total') || row.classList.contains('pe-total') || row.classList.contains('total') || /^(TOTAL|TOTAL GERAL)$/i.test(row.cells[0]?.textContent?.trim()||''));
     const comuns=linhas.filter(row=>!fixas.includes(row));
@@ -60,7 +60,8 @@ export default function SortableTable({children}: {children:ReactNode}) {
     setOrdem({coluna,direcao});
     ordenar(coluna,direcao);
   }
-  return <>\n    <table ref={ref} onClick={clicar} className="kidy-sort-table">{children}</table>
+  return <> 
+    <table ref={ref} onClick={clicar} className="kidy-sort-table">{children}</table>
     <style jsx global>{`
       .kidy-sort-table thead th{cursor:pointer;user-select:none;position:relative;padding-right:17px!important}
       .kidy-sort-table thead th::after{content:'↕';position:absolute;right:4px;opacity:.8}
@@ -70,3 +71,4 @@ export default function SortableTable({children}: {children:ReactNode}) {
     `}</style>
   </>;
 }
+
