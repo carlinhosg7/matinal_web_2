@@ -1,0 +1,33 @@
+/* CSS isolado: funciona mesmo sem Tailwind configurado. */
+.entrada-page{min-height:100vh;background:#f8fafc;color:#0f172a;padding:20px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box}
+.entrada-page *{box-sizing:border-box}.entrada-page button,.entrada-page select{cursor:pointer;font:inherit}.entrada-page button{transition:background .15s}.entrada-page a{text-decoration:none;color:inherit}
+.entrada-page>div{max-width:1280px;margin:auto;background:#fff;border-radius:12px;padding:22px;box-shadow:0 1px 5px #0001}
+.entrada-page>div>div:first-child{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.entrada-page>div>div:first-child>div:first-child>div{font-size:30px;font-weight:900;color:#f66b00}
+.entrada-page>div>div:first-child>div:first-child span{font-size:26px}
+.entrada-page>div>div:first-child p{color:#64748b;font-size:12px}
+.entrada-page>div>div:first-child>div:last-child{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800}
+.entrada-page>div>div:first-child button,.entrada-page>div>div:first-child a{padding:8px 12px;border:2px solid #ff6b00;text-align:center;background:#fff}
+.entrada-page>div>div:first-child a{background:#b9ffb5}
+.entrada-page>div>div:nth-child(2){margin-top:16px}
+.entrada-page section{margin-top:18px}.entrada-page section:nth-of-type(1),.entrada-page section:nth-of-type(2){border:3px solid #ff6b00;border-radius:11px;padding:12px}
+.entrada-page section:nth-of-type(1)>div:last-child{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.entrada-page section:nth-of-type(1) button{border:2px solid #ff6b00;background:#fff;font-size:11px;font-weight:800;padding:12px 3px;border-radius:4px}
+.entrada-page section:nth-of-type(1) button[aria-pressed=true]{background:#ff6b00;color:white}
+.entrada-page>div>div:nth-child(4){border:3px solid #ff6b00;border-radius:11px;text-align:center;font-size:32px;font-weight:900;padding:12px;margin-top:14px;box-shadow:0 2px 5px #0003}
+.entrada-page section:nth-of-type(2) label{display:block;font-size:12px;color:#64748b}.entrada-page section:nth-of-type(2) select{width:100%;padding:8px;border:1px solid #ddd;border-radius:5px;background:#fff}.entrada-page section:nth-of-type(2) p{font-size:11px;color:#64748b}
+.entrada-page>div>div:nth-child(6){display:grid;grid-template-columns:1fr 230px;gap:18px;margin-top:14px}
+.entrada-page>div>div:nth-child(6)>div{border:3px solid #ff6b00;border-radius:11px;text-align:center;padding:13px;box-shadow:0 2px 5px #0003;font-weight:900}
+.entrada-page>div>div:nth-child(6)>div:first-child{font-size:30px}.entrada-page>div>div:nth-child(6)>div:last-child{background:#b9ffb5}.entrada-page>div>div:nth-child(6)>div:last-child>div:first-child{color:#f66b00}
+.entrada-page section:nth-of-type(3){display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.entrada-page section:nth-of-type(3)>div{border:3px solid #ff6b00;border-radius:10px;padding:12px 5px;text-align:center;box-shadow:0 2px 5px #0002;min-width:0}
+.entrada-page section:nth-of-type(3)>div:nth-child(3),.entrada-page section:nth-of-type(3)>div:nth-child(4),.entrada-page section:nth-of-type(3)>div:nth-child(7),.entrada-page section:nth-of-type(3)>div:nth-child(8),.entrada-page section:nth-of-type(3)>div:nth-child(11),.entrada-page section:nth-of-type(3)>div:nth-child(12),.entrada-page section:nth-of-type(3)>div:nth-child(15),.entrada-page section:nth-of-type(3)>div:nth-child(16){background:#f1b5b9}
+.entrada-page section:nth-of-type(3)>div:nth-child(5),.entrada-page section:nth-of-type(3)>div:nth-child(13){visibility:hidden;border:0;box-shadow:none}
+.entrada-page section:nth-of-type(3)>div>div:first-child{font-size:12px;font-weight:900;color:#f66b00}.entrada-page section:nth-of-type(3)>div>div:last-child{font-size:16px;font-weight:900;margin-top:9px;overflow-wrap:anywhere}
+.entrada-page>div>div:nth-child(8){display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-top:35px}
+.entrada-page>div>div:nth-child(8)>div{display:flex;gap:8px;flex-wrap:wrap}.entrada-page>div>div:nth-child(8) button{border:2px solid #1661a6;background:#7d8897;color:white;padding:10px 15px;font-size:11px;font-weight:900}
+.entrada-page>div>div:nth-child(8)>div:first-child button:first-child{background:#b9ffb5;color:#000;border-color:#111}.entrada-page>div>div:nth-child(8)>div:first-child button:last-child{background:#333;color:white;border-color:#111}
+.entrada-page>div>div:nth-child(8)>div:last-child button:focus{background:#ff6b00}
+.entrada-page table{border-collapse:collapse;width:100%;min-width:790px;font-size:11px}.entrada-page table th{background:#ff6b00;color:#fff;padding:8px;text-align:left}.entrada-page table td{padding:6px;border-bottom:1px solid #ddd}.entrada-page table tbody tr:nth-child(even){background:#f1f1f1}.entrada-page table tbody tr:last-child{background:#a7d6ff;font-weight:900}.entrada-page>div>div:has(>table){overflow-x:auto;margin-top:18px}.entrada-page h3{background:#ff6b00;color:white;padding:9px;font-size:13px}
+@media(max-width:800px){.entrada-page section:nth-of-type(1)>div:last-child{grid-template-columns:repeat(3,1fr)}.entrada-page section:nth-of-type(3){grid-template-columns:repeat(2,minmax(0,1fr))}.entrada-page section:nth-of-type(3)>div:nth-child(5),.entrada-page section:nth-of-type(3)>div:nth-child(13){display:none}.entrada-page>div>div:nth-child(6){grid-template-columns:1fr}}
+@media(max-width:480px){.entrada-page{padding:8px}.entrada-page>div{padding:12px}.entrada-page section:nth-of-type(1)>div:last-child{grid-template-columns:repeat(2,1fr)}.entrada-page>div>div:first-child>div:first-child>div{font-size:22px}.entrada-page>div>div:first-child>div:first-child span{font-size:20px}}

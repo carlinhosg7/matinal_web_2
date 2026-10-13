@@ -14,7 +14,7 @@ function cabecalho(rows:Row[], campos:string[]){const idx=rows.findIndex(r=>camp
 function col(cols:string[],nome:string){const i=cols.indexOf(nome.toLowerCase());if(i<0)throw new Error(`Coluna não encontrada: ${nome}`);return i}
 function periodoInfo(rows:Row[]){const s=rows.slice(0,3).flat().map(normal).find(x=>x.includes('Data Entrega:'))||'';const m=s.match(/Data Entrega:\s*(\d{2}\/\d{2}\/\d{4})\s*à\s*(\d{2}\/\d{2}\/\d{4})/);return m?{inicio:m[1],fim:m[2]}:null}
 export function carregarModeloFaturamento(){
- const cadRows=ler('CAD_REPRESENTANTE.xlsx','CAD_REPRESENTANTE');const cadH=cabecalho(cadRows,['Codigo Representante','Supervisor']);const ci=col(cadH.cols,'Codigo Representante'),cs=col(cadH.cols,'Supervisor'),cn=col(cadH.cols,'Representante');
+ const cadRows=ler('CAD_REPRESENTANTE.xlsx','CAD_REPRESENTANTE');const cadH=cabecalho(cadRows,['Codigo Representante','Supervisor']);const ci=col(cadH.cols,'Codigo Representante'),cs=col(cadH.cols,'Supervisor'),cn=col(cadH.cols,'Nome Rep');
  const cadastro=new Map<string,{nome:string;supervisor:string}>();for(const r of cadRows.slice(cadH.idx+1)){const c=codigo(r[ci]);if(c)cadastro.set(c,{nome:normal(r[cn]),supervisor:normal(r[cs])||'(Em branco)'})}
  const metaRows=ler('META DE FATURAMENTO DO MES.xlsx','META DE FATURAMENTO DO MES');const mh=cabecalho(metaRows,['CODIGO_REP','META_VALOR','META_QUANTIDADE','ANO','MÊS']);
  const mi=col(mh.cols,'CODIGO_REP'),my=col(mh.cols,'ANO'),mm=col(mh.cols,'MÊS'),mv=col(mh.cols,'META_VALOR'),mp=col(mh.cols,'META_QUANTIDADE'),mid=mh.cols.indexOf('identificador');

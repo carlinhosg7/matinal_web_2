@@ -1,22 +1,8 @@
-MATINAL WEB - FATURAMENTO
-
-1. Pare o servidor Next.js.
-2. Copie os arquivos deste pacote para D:\matinal-web respeitando as pastas.
-3. Em D:\matinal-web\.env.local, defina:
-   MATINAL_DATA_DIR=I:\Meu Drive\Dados Matinal\DADOS_2
-4. Confirme que os nomes exatos dos três arquivos são:
-   META DE FATURAMENTO DO MES.xlsx
-   INDICADORES COMERCIAIS POR  FATURAMENTO.xlsx  (DOIS espaços entre POR e FATURAMENTO)
-   CAD_REPRESENTANTE.xlsx
-5. Reinicie npm run dev e acesse http://localhost:3000/faturamento
-6. Confira http://localhost:3000/api/faturamento
-
-Regras:
-- Meta valores K, meta pares I; realizado valores D, pares J; ano anterior valores F, pares K.
-- Metas filtradas pelo ano e mês do período declarado na aba MES.
-- Identificadores repetidos na meta são considerados uma vez.
-- Códigos sem cadastro ficam em (Em branco), são sinalizados no rodapé.
-- Os botões são somente os da referência original. Demais categorias do cadastro permanecem na visão nacional e podem aparecer na tabela regional.
-- Percentuais são realizado/meta e realizado/ano anterior.
-- Botão VALORES/PARES alterna os mesmos indicadores; não cria outro dashboard.
-- Outras páginas do menu são visuais nesta etapa, sem navegação implementada.
+BRINQUEDOS - Matinal Web
+Copiar as pastas app para D:\matinal-web.
+Metas: META BRINQUEDOS VER26.xlsx / META BRINQUEDOS GERAL.
+Realizado e PMV: TORRE 02.xlsx / BRINQUEDOS GERAL.
+Clientes: distintos por Grupo Cliente dentro de cada representante; soma dos grupos por representante na visão nacional.
+PMV: soma valores / soma pares. Meta R$ = meta pares x PMV nacional.
+Configuração opcional MATINAL_BRINQUEDOS_DIR.
+Não altera outros módulos.

@@ -1,0 +1,13 @@
+MATINAL WEB - CORREÇÃO DO VISUAL E NAVEGAÇÃO
+
+1) Faça backup de D:\matinal-web.
+2) Copie a pasta app/entrada e a pasta components deste pacote para D:\matinal-web, mesclando pastas. Não apague outros arquivos.
+3) Copie app/cobertura, app/projetos-especiais e app/brinquedos apenas se essas rotas ainda não existirem. Não sobrescreva páginas prontas.
+4) Para ativar a navegação na página de FATURAMENTO, edite app/faturamento/page.tsx:
+   importe: import MatinalNav from '../../components/MatinalNav';
+   e insira <MatinalNav /> no JSX onde hoje aparece a barra de navegação. Remova somente a barra antiga para não duplicar.
+5) Caso exista um cabeçalho compartilhado (app/layout.tsx ou componente Header), é melhor colocar MatinalNav nele uma única vez, retirando a barra das páginas individuais.
+6) Reinicie o Next.js: npm run dev -- -H 0.0.0.0 -p 3001
+7) Teste /faturamento, /entrada, /cobertura, /projetos-especiais e /brinquedos.
+
+OBS: A entrada.css é independente do Tailwind. Os números da página Entrada são demonstrativos.
