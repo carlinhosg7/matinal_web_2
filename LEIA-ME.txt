@@ -1,8 +1,1 @@
-BRINQUEDOS - Matinal Web
-Copiar as pastas app para D:\matinal-web.
-Metas: META BRINQUEDOS VER26.xlsx / META BRINQUEDOS GERAL.
-Realizado e PMV: TORRE 02.xlsx / BRINQUEDOS GERAL.
-Clientes: distintos por Grupo Cliente dentro de cada representante; soma dos grupos por representante na visão nacional.
-PMV: soma valores / soma pares. Meta R$ = meta pares x PMV nacional.
-Configuração opcional MATINAL_BRINQUEDOS_DIR.
-Não altera outros módulos.
+Atualização do Resumo Comercial: metas, realizados, diferenças e percentuais de pares e valores, na tela e no PDF. Mantém as seções dos projetos e logos. Extrair em D:\matinal-web. Dados de cobertura em R$ não se aplicam. Verificar números nas APIs e PBIX.

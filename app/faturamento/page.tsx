@@ -3,6 +3,7 @@
 import {useEffect,useMemo,useState} from 'react';
 
 import Image from 'next/image';
+import SortableTable from '../../components/SortableTable';
 import Link from 'next/link';
 
 type Linha={codigo:string;nome:string;supervisor:string;metaValor:number;realValor:number;anteriorValor:number;metaPares:number;realPares:number;anteriorPares:number};
@@ -19,7 +20,7 @@ const dinheiro=(v:number)=>v.toLocaleString('pt-BR',{style:'currency',currency:'
 
 const inteiro=(v:number)=>v.toLocaleString('pt-BR',{maximumFractionDigits:0});
 
-const percentual=(a:number,b:number)=>b===0?'—':(a/b*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+const percentual=(a:number,b:number)=>b===0?'â€”':(a/b*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
 
 
 
@@ -53,7 +54,7 @@ export default function Faturamento(){
 
  return <div className="fat-wrap">
 
- <nav className="fat-nav" aria-label="Navegação Matinal" style={{display:"flex",marginLeft:145,gap:2,height:38}}>
+ <nav className="fat-nav" aria-label="NavegaÃ§Ã£o Matinal" style={{display:"flex",marginLeft:145,gap:2,height:38}}>
   {[
     { nome: 'FATURAMENTO', href: '/faturamento' },
     { nome: 'ENTRADA', href: '/entrada' },
@@ -67,7 +68,7 @@ export default function Faturamento(){
   ))}
  </nav>
 
- <header className="fat-header"><Image src="/kidy-logo.png" alt="Kidy Cuidando de Cada Passo" width={135} height={106} style={{objectFit:'contain'}} priority/><h1>FATURAMENTO MENSAL</h1><div className="fat-actions"><button onClick={()=>{setRegionaisSelecionadas([]);setRepresentante('');setPares(false)}}>LIMPAR TODOS OS FILTROS</button><a href="/">VOLTAR AO INÍCIO</a></div></header>
+ <header className="fat-header"><Image src="/kidy-logo.png" alt="Kidy Cuidando de Cada Passo" width={135} height={106} style={{objectFit:'contain'}} priority/><h1>FATURAMENTO MENSAL</h1><div className="fat-actions"><button onClick={()=>{setRegionaisSelecionadas([]);setRepresentante('');setPares(false)}}>LIMPAR TODOS OS FILTROS</button><a href="/portal">VOLTAR AO INÃCIO</a></div></header>
 
  <section className="fat-region"><span>Supervisor</span><div className="fat-region-buttons">{regioes.map(n=><button key={n} className={regionaisSelecionadas.includes(n)?'selected':''} aria-pressed={regionaisSelecionadas.includes(n)} onClick={()=>alternarRegional(n)}>{n}</button>)}</div></section>
 
@@ -85,29 +86,29 @@ export default function Faturamento(){
 
  <section className="fat-kpis">
 
- <div className="fat-card"><span>METAS {pares?'PARES':'R$'} MÊS</span><strong>{dados?fmt(m):'—'}</strong></div>
+ <div className="fat-card"><span>METAS {pares?'PARES':'R$'} MÃŠS</span><strong>{dados?fmt(m):'â€”'}</strong></div>
 
- <div className="fat-card"><span>REALIZADO {pares?'PARES':'R$'} MÊS</span><strong>{dados?fmt(r):'—'}</strong></div>
+ <div className="fat-card"><span>REALIZADO {pares?'PARES':'R$'} MÃŠS</span><strong>{dados?fmt(r):'â€”'}</strong></div>
 
- <div className="fat-card pink"><span>DIFERENÇA {pares?'PARES':'R$'} MÊS</span><strong>{dados?fmt(r-m):'—'}</strong></div>
+ <div className="fat-card pink"><span>DIFERENÃ‡A {pares?'PARES':'R$'} MÃŠS</span><strong>{dados?fmt(r-m):'â€”'}</strong></div>
 
- <div className="fat-card pink"><span>Δ % MÊS</span><strong>{dados?percentual(r,m):'—'}</strong></div>
+ <div className="fat-card pink"><span>Î” % MÃŠS</span><strong>{dados?percentual(r,m):'â€”'}</strong></div>
 
  <div className="fat-toggle"><button onClick={()=>setAberto(true)}>ABRIR DADOS</button><button onClick={()=>setAberto(false)}>FECHAR DADOS</button></div>
 
- <div className="fat-card"><span>REALIZADO {pares?'PARES':'R$'} MÊS ANO ANTERIOR</span><strong>{dados?fmt(aa):'—'}</strong></div>
+ <div className="fat-card"><span>REALIZADO {pares?'PARES':'R$'} MÃŠS ANO ANTERIOR</span><strong>{dados?fmt(aa):'â€”'}</strong></div>
 
- <div className="fat-card pink"><span>DIFERENÇA {pares?'PARES':'R$'} MÊS AO ANO ANTERIOR</span><strong>{dados?fmt(r-aa):'—'}</strong></div>
+ <div className="fat-card pink"><span>DIFERENÃ‡A {pares?'PARES':'R$'} MÃŠS AO ANO ANTERIOR</span><strong>{dados?fmt(r-aa):'â€”'}</strong></div>
 
- <div className="fat-card pink"><span>Δ % MÊS AO ANO ANTERIOR</span><strong>{dados?percentual(r,aa):'—'}</strong></div>
+ <div className="fat-card pink"><span>Î” % MÃŠS AO ANO ANTERIOR</span><strong>{dados?percentual(r,aa):'â€”'}</strong></div>
 
  </section>
 
- {aberto&&<><section className="fat-table"><div className="fat-table-scroll"><table><thead><tr><th>Supervisor</th><th>Meta {pares?'Pares':'Valor'}</th><th>Realizado {pares?'Pares':'Valor'}</th><th>Dif. {pares?'Pares':'Valor'}</th><th>Δ %</th><th>Valor Ano Anterior</th><th>Dif. Atual x Anterior</th><th>Δ %</th></tr></thead><tbody>{grupos.map(({nome,tot})=>{const a=pares?tot.metaPares:tot.metaValor,b=pares?tot.realPares:tot.realValor,c=pares?tot.anteriorPares:tot.anteriorValor;return <tr key={nome}><td>{nome}</td><td>{fmt(a)}</td><td>{fmt(b)}</td><td>{fmt(b-a)}</td><td>{percentual(b,a)}</td><td>{fmt(c)}</td><td>{fmt(b-c)}</td><td>{percentual(b,c)}</td></tr>})}<tr className="fat-total"><td>Total</td><td>{fmt(m)}</td><td>{fmt(r)}</td><td>{fmt(r-m)}</td><td>{percentual(r,m)}</td><td>{fmt(aa)}</td><td>{fmt(r-aa)}</td><td>{percentual(r,aa)}</td></tr></tbody></table></div></section>
+ {aberto&&<><section className="fat-table"><div className="fat-table-scroll"><SortableTable><thead><tr><th>Supervisor</th><th>Meta {pares?'Pares':'Valor'}</th><th>Realizado {pares?'Pares':'Valor'}</th><th>Dif. {pares?'Pares':'Valor'}</th><th>Î” %</th><th>Valor Ano Anterior</th><th>Dif. Atual x Anterior</th><th>Î” %</th></tr></thead><tbody>{grupos.map(({nome,tot})=>{const a=pares?tot.metaPares:tot.metaValor,b=pares?tot.realPares:tot.realValor,c=pares?tot.anteriorPares:tot.anteriorValor;return <tr key={nome}><td>{nome}</td><td>{fmt(a)}</td><td>{fmt(b)}</td><td>{fmt(b-a)}</td><td>{percentual(b,a)}</td><td>{fmt(c)}</td><td>{fmt(b-c)}</td><td>{percentual(b,c)}</td></tr>})}<tr className="fat-total"><td>Total</td><td>{fmt(m)}</td><td>{fmt(r)}</td><td>{fmt(r-m)}</td><td>{percentual(r,m)}</td><td>{fmt(aa)}</td><td>{fmt(r-aa)}</td><td>{percentual(r,aa)}</td></tr></tbody></SortableTable></div></section>
 
- <section className="fat-table"><div className="fat-table-scroll"><table><thead><tr><th>Representante</th><th>Meta {pares?'Pares':'Valor'}</th><th>Realizado {pares?'Pares':'Valor'}</th><th>Diferença</th><th>Δ %</th><th>Ano Anterior</th><th>Dif. Atual x Anterior</th><th>Δ %</th></tr></thead><tbody>{filtrados.map(x=>{const a=pares?x.metaPares:x.metaValor,b=pares?x.realPares:x.realValor,c=pares?x.anteriorPares:x.anteriorValor;return <tr key={x.codigo}><td>{x.nome}</td><td>{fmt(a)}</td><td>{fmt(b)}</td><td>{fmt(b-a)}</td><td>{percentual(b,a)}</td><td>{fmt(c)}</td><td>{fmt(b-c)}</td><td>{percentual(b,c)}</td></tr>})}</tbody></table></div></section></>}
+ <section className="fat-table"><div className="fat-table-scroll"><SortableTable><thead><tr><th>Representante</th><th>Meta {pares?'Pares':'Valor'}</th><th>Realizado {pares?'Pares':'Valor'}</th><th>DiferenÃ§a</th><th>Î” %</th><th>Ano Anterior</th><th>Dif. Atual x Anterior</th><th>Î” %</th></tr></thead><tbody>{filtrados.map(x=>{const a=pares?x.metaPares:x.metaValor,b=pares?x.realPares:x.realValor,c=pares?x.anteriorPares:x.anteriorValor;return <tr key={x.codigo}><td>{x.nome}</td><td>{fmt(a)}</td><td>{fmt(b)}</td><td>{fmt(b-a)}</td><td>{percentual(b,a)}</td><td>{fmt(c)}</td><td>{fmt(b-c)}</td><td>{percentual(b,c)}</td></tr>})}</tbody></SortableTable></div></section></>}
 
- <p className="fat-foot">Fonte: {dados?.periodo||'—'} · Metas: {dados?.metasValidas??'—'} registros · Realizado: {dados?.vendasValidas??'—'} registros{dados?.semCadastro?.length?' · Atenção: representantes sem cadastro: '+dados.semCadastro.join(', '):''}</p>
+ <p className="fat-foot">Fonte: {dados?.periodo||'â€”'} Â· Metas: {dados?.metasValidas??'â€”'} registros Â· Realizado: {dados?.vendasValidas??'â€”'} registros{dados?.semCadastro?.length?' Â· AtenÃ§Ã£o: representantes sem cadastro: '+dados.semCadastro.join(', '):''}</p>
 
  <style jsx>{`
 
