@@ -1,5 +1,5 @@
+import {abrirDrive,encontrarDrive} from '../../../lib/drive-source';
 import {NextResponse} from 'next/server';
-import fs from 'node:fs';
 import path from 'node:path';
 import * as XLSX from 'xlsx';
 export const runtime='nodejs';
@@ -11,33 +11,27 @@ const cod=(v:unknown)=>String(v??'').trim().replace(/\.0$/,'');
 const num=(v:unknown)=>{if(typeof v==='number')return Number.isFinite(v)?v:0;const s=String(v??'').trim();const n=Number(s.includes(',')?s.replace(/\./g,'').replace(',','.'):s);return Number.isFinite(n)?n:0};
 const total=(v:unknown)=>['TOTAL','TOTALGERAL','SUBTOTAL'].includes(norm(v));
 
-function cadastroRepresentantes(dir:string):Map<string,{nome:string;supervisor:string}>{
+async function cadastroRepresentantes(_dir:string):Promise<Map<string,{nome:string;supervisor:string}>>{
  const resultado=new Map<string,{nome:string;supervisor:string}>();
- try{
-  const f=fs.readdirSync(dir).find(x=>norm(path.parse(x).name)==='CADREPRESENTANTE'&&/\.xlsx$/i.test(x)&&!x.startsWith('~$'));
-  if(!f)return resultado;
-  const w=abrir(path.join(dir,f));
-  const nomeAba=w.SheetNames.find(x=>norm(x)==='CADREPRESENTANTE');
-  if(!nomeAba)return resultado;
-  const matriz=XLSX.utils.sheet_to_json<unknown[]>(w.Sheets[nomeAba],{header:1,raw:true,defval:''});
-  const cab=(matriz[0]||[]).map(norm);
-  const indice=(...nomes:string[])=>cab.findIndex(x=>nomes.map(norm).includes(x));
-  const ci=indice('Codigo Representante','CODIGO_REP','CODREP','CODIGO');
-  const ni=indice('Nome Rep','Representante');
-  const si=indice('Supervisor');
-  if(ci<0||si<0)return resultado;
-  for(const row of matriz.slice(1)){
-   const id=cod(row[ci]);if(!id||total(id))continue;
-   const supervisor=String(row[si]??'').trim();
-   const nome=ni>=0?String(row[ni]??'').trim():'';
-   if(supervisor)resultado.set(id,{supervisor,nome});
-  }
- }catch(e){console.warn('[CAD_REPRESENTANTE]',e)}
+ const w=await abrirDrive('CAD_REPRESENTANTE.xlsx');
+ const nomeAba=w.SheetNames.find(x=>norm(x)==='CADREPRESENTANTE');
+ if(!nomeAba)return resultado;
+ const matriz=XLSX.utils.sheet_to_json<unknown[]>(w.Sheets[nomeAba],{header:1,raw:true,defval:''});
+ const cab=(matriz[0]||[]).map(norm);
+ const indice=(...nomes:string[])=>cab.findIndex(x=>nomes.map(norm).includes(x));
+ const ci=indice('Codigo Representante','CODIGO_REP','CODREP','CODIGO');
+ const ni=indice('Nome Rep','Representante');const si=indice('Supervisor');
+ if(ci<0||si<0)return resultado;
+ for(const row of matriz.slice(1)){
+  const id=cod(row[ci]);if(!id||total(id))continue;
+  const supervisor=String(row[si]??'').trim();
+  const nome=ni>=0?String(row[ni]??'').trim():'';
+  if(supervisor)resultado.set(id,{supervisor,nome});
+ }
  return resultado;
 }
-
-function achar(dir:string,nomes:string[]){const files=fs.readdirSync(dir).filter(f=>/\.xlsx$/i.test(f)&&!f.startsWith('~$'));const f=files.find(f=>nomes.some(n=>norm(path.parse(f).name)===norm(path.parse(n).name)));if(!f)throw Error(`Não encontrei ${nomes.join(' / ')} em ${dir}. Disponíveis: ${files.join(', ')}`);return path.join(dir,f)}
-function abrir(file:string){return XLSX.read(fs.readFileSync(file),{type:'buffer',cellDates:true})}
+function encontrar(_dir:string,nomes:string[]){return encontrarDrive(nomes)}
+async function abrir(file:string){return abrirDrive(file)}
 function ler(w:XLSX.WorkBook,aba:string,cab:number){const n=w.SheetNames.find(n=>norm(n)===norm(aba));if(!n)throw Error(`Aba ${aba} ausente. Disponíveis: ${w.SheetNames.join(', ')}`);const m=XLSX.utils.sheet_to_json<unknown[]>(w.Sheets[n],{header:1,raw:true,defval:''});const h=(m[cab-1]||[]).map(norm);return m.slice(cab).filter(r=>r.some(v=>v!==''&&v!==null)).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]]).filter(([k])=>!!k))) as Registro[]}
 function campo(r:Registro,...nomes:string[]){for(const n of nomes){const v=r[norm(n)];if(v!==undefined&&v!==null&&String(v).trim()!=='')return v}return undefined}
 const config=[{id:'brincaflex',nome:'BRINCAFLEX',meta:'META BRINCAFLEX',torre:'BRINCA FLEX'},{id:'veloz',nome:'VELOZ',meta:'META VELOZ',torre:'VELOZ'},{id:'impulso',nome:'IMPULSO 2',meta:'META IMPULSO',torre:'K360 - IMPULSO 2'},{id:'localize',nome:'LOCALIZE',meta:'META LOCALIZE',torre:'LOCALIZE'},{id:'luzes',nome:'KIDY LUZES',meta:'Meta Luzes',torre:'LUZES'},{id:'rebecca',nome:'REBECCA BONBON',meta:'Forcast RB',torre:'REBECA BOMBOM'}];
@@ -46,12 +40,12 @@ export async function GET(){try{
  // Permite separar a pasta de projetos das demais bases.
  const pastaMetas=(process.env.MATINAL_PROJETOS_METAS_DIR||dir).trim();
  const pastaTorre=(process.env.MATINAL_PROJETOS_TORRE_DIR||dir).trim();
- const mf=achar(pastaMetas,['META PROJETOS ESPECIAIS.xlsx']);const tf=achar(pastaTorre,['TORRE 02.xlsx']);
- const mw=abrir(mf),tw=abrir(tf);
- const luzesFile=achar(pastaMetas,['METAS - LUZES-PRIM_KIDY - K360.xlsx']);
- const rebeccaFile=achar(pastaMetas,['METAS REBECA BONBON POR REP.xlsx','METAS REBECCA BONBON POR REP.xlsx']);
- const lw=abrir(luzesFile),rw=abrir(rebeccaFile);
- const cadastro=[dir,pastaMetas,path.dirname(dir),'I:\\Meu Drive\\Dados Matinal\\DADOS_2'].map(cadastroRepresentantes).find(m=>m.size>0)||new Map<string,{nome:string;supervisor:string}>();
+ const mf=encontrar(pastaMetas,['META PROJETOS ESPECIAIS.xlsx']);const tf=encontrar(pastaTorre,['TORRE 02.xlsx']);
+ const [mw,tw]=await Promise.all([abrir(mf),abrir(tf)]);
+ const luzesFile=encontrar(pastaMetas,['METAS - LUZES-PRIM_KIDY - K360.xlsx']);
+ const rebeccaFile=encontrar(pastaMetas,['METAS REBECA BONBON POR REP.xlsx','METAS REBECCA BONBON POR REP.xlsx']);
+ const [lw,rw]=await Promise.all([abrir(luzesFile),abrir(rebeccaFile)]);
+ const cadastro=await cadastroRepresentantes(dir);
  const projetos=config.map(cfg=>{
   const metas=ler(cfg.id==='luzes'?lw:cfg.id==='rebecca'?rw:mw,cfg.meta,cfg.id==='rebecca'?3:1),vendas=ler(tw,cfg.torre,3);
   const mapa=new Map<string,Linha>();const grupos=new Map<string,Set<string>>();

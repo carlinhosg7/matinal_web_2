@@ -1,4 +1,5 @@
-﻿import fs from "node:fs";
+import {abrirDrive} from './drive-source';
+import fs from "node:fs";
 import path from "node:path";
 import * as XLSX from "xlsx";
 
@@ -11,19 +12,8 @@ const PASTA =
 const ARQUIVO =
   "INDICADORES COMERCIAIS POR  FATURAMENTO.xlsx";
 
-export function carregarFaturamento() {
-  const caminho = path.join(PASTA, ARQUIVO);
-
-  if (!fs.existsSync(caminho)) {
-    throw new Error(`Arquivo não encontrado: ${caminho}`);
-  }
-
-  const buffer = fs.readFileSync(caminho);
-
-  const wb = XLSX.read(buffer, {
-    type: "buffer",
-    cellDates: true,
-  });
+export async function carregarFaturamento() {
+  const wb = await abrirDrive(ARQUIVO);
 
   const ws = wb.Sheets["MES"];
 

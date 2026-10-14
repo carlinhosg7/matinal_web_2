@@ -1,0 +1,20 @@
+MATINAL COMERCIAL - ETAPA 2 - TESTE DE LEITURA REAL DO EXCEL
+
+1. Extraia este ZIP.
+2. Copie as pastas app e lib para D:\matinal-web, mesclando as pastas.
+   Somente 2 arquivos NOVOS serão acrescentados:
+   - lib/google-drive-excel.ts
+   - app/api/drive-excel/route.ts
+   Não substitua arquivos de login ou outros arquivos existentes.
+3. Execute:
+   cd D:\matinal-web
+   npm run build
+   git add lib/google-drive-excel.ts app/api/drive-excel/route.ts
+   git commit -m "Etapa 2 leitura Excel Google Drive"
+   git push origin main
+4. Aguarde Vercel Ready. Logado como administrador, abra:
+   https://matinal-web-2.vercel.app/api/drive-excel
+
+O retorno apresenta abas, nomes das colunas e quantidade de linhas, sem publicar registros comerciais.
+Somente VENDA SEMANA.xlsx (até 1 MB) está autorizado nesta etapa.
+O Apps Script deve estar na versão 2 publicada.

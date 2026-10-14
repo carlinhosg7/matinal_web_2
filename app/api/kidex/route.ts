@@ -1,3 +1,4 @@
+import {abrirDrive,encontrarDrive} from '../../../lib/drive-source';
 import { NextResponse } from 'next/server';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -20,21 +21,8 @@ const numero = (v:unknown) => {
 const vazio = (v:unknown) => v === undefined || v === null || String(v).trim() === '';
 const total = (id:string) => ['TOTALGERAL','TOTAL','SUBTOTAL'].includes(normal(id));
 
-function localizar(dir:string, nomes:string[]):string {
-  let encontrados:string[];
-  try { encontrados = fs.readdirSync(dir).filter(f=>/\.xlsx$/i.test(f) && !f.startsWith('~$')); }
-  catch(e) { throw new Error(`Não foi possível listar a pasta ${dir}: ${String(e)}`); }
-  const arquivo = encontrados.find(f => nomes.some(n=>normal(path.parse(f).name) === normal(path.parse(n).name)));
-  if(!arquivo) throw new Error(`Arquivo não encontrado (${nomes.join(' ou ')}) em ${dir}. Encontrados: ${encontrados.join(', ')}`);
-  return path.join(dir,arquivo);
-}
-function abrir(file:string):XLSX.WorkBook {
-  let bytes:Buffer;
-  try { bytes=fs.readFileSync(file); }
-  catch(e) { throw new Error(`Falha ao abrir ${file}: ${String(e)}`); }
-  try { return XLSX.read(bytes,{type:'buffer',cellDates:true}); }
-  catch(e) { throw new Error(`Falha ao interpretar Excel ${file} (${bytes.length} bytes): ${String(e)}`); }
-}
+function localizar(_dir:string, nomes:string[]):string {return encontrarDrive(nomes)}
+async function abrir(file:string):Promise<XLSX.WorkBook> {return abrirDrive(file)}
 function ler(wb:XLSX.WorkBook, aba:string, linhaCabecalho:number):Registro[] {
   const nome=wb.SheetNames.find(n=>normal(n)===normal(aba));
   if(!nome) throw new Error(`Aba ${aba} não encontrada. Abas disponíveis: ${wb.SheetNames.join(', ')}`);
@@ -51,14 +39,14 @@ export async function GET() {
     const dir=(process.env.MATINAL_KIDEX_DIR || process.env.MATINAL_ENTRADA_DIR || 'I:\\Meu Drive\\Dados Matinal\\DADOS_2').trim();
     const metaFile=localizar(dir,['META ENTRADA C KIDEX.xlsx']);
     const matinalFile=localizar(dir,['MATINAL COMERIAL.xlsx','MATINAL COMERCIAL.xlsx']);
-    const metaWb=abrir(metaFile);
+    const metaWb=await abrir(metaFile);
     const metaAba=metaWb.SheetNames.find(n=>normal(n)===normal('Folha 1'));
     if(!metaAba)throw new Error('Aba Folha 1 não encontrada no arquivo de metas KIDEX');
     const metaMatriz=XLSX.utils.sheet_to_json<unknown[]>(metaWb.Sheets[metaAba],{header:1,defval:'',raw:true});
     const meta:Registro[]=metaMatriz.slice(2).filter(r=>!vazio(r[0])&&!total(String(r[0]))).map(r=>({
       CODIGOREPRESENTANTE:r[0], REPRESENTANTE:r[1], PARESKIDEX:r[8], VALORKIDEX:r[9]
     }));
-    const wb=abrir(matinalFile);
+    const wb=await abrir(matinalFile);
     const atual=ler(wb,'KIDEX',3);
     const anterior:Registro[]=[];
     const avisos:string[]=[];
@@ -114,7 +102,7 @@ export async function GET() {
       l.anteriorValor+=numero(campo(r,'Vlr Venda'));
     }
     try {
-      const cadastro=ler(abrir(localizar(dir,['CAD_REPRESENTANTE.xlsx'])),'CAD_REPRESENTANTE',1);
+      const cadastro=ler(await abrir(localizar(dir,['CAD_REPRESENTANTE.xlsx'])),'CAD_REPRESENTANTE',1);
       for(const r of cadastro){
         const id=codigo(campo(r,'Codigo Representante','CODIGO_REP','CODREP','CODIGO'));
         const l=mapa.get(id);if(!l)continue;

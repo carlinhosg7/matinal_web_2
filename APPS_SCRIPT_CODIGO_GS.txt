@@ -1,0 +1,38 @@
+/** Matinal Comercial: API de leitura Excel (somente servidor Next.js). */
+const PASTA_ID = '181pFIGKqD7YM53bugIA8YKTkqYs53U9z';
+const LIMITE_BYTES = 12000000;
+const PERMITIDOS = [
+ 'CAD_REPRESENTANTE.xlsx','COBERTURA DE CARTEIRA 503 564.xlsx',
+ 'INDICADORES COMERCIAIS POR  FATURAMENTO.xlsx','MATINAL COMERIAL  RN.xlsx',
+ 'MATINAL COMERIAL.xlsx','MATINAL.xlsx','META BRINQUEDOS VER26.xlsx',
+ 'META BRINQUEDOS.xlsx','META CLIENTES NOVOS.xlsx','META DE ENTRADA DO MES.xlsx',
+ 'META DE FATURAMENTO DO MES.xlsx','META ENTRADA C KIDEX.xlsx',
+ 'META FATRAMENTO 187K.xlsx','META PROJETOS ESPECIAIS.xlsx','META SURPRESA.xlsx',
+ 'METAS - LUZES-PRIM_KIDY - K360.xlsx','METAS REBECA BONBON POR REP.xlsx',
+ 'TORRE 02.xlsx','TORRE.xlsx','VEN_META_REP_MENSAL_TIPO_PEDIDO - Entrega Pedido - 01-07-2026 - MAIOR.xlsx',
+ 'Venda por RepresentanteMarca.xlsx','VENDA SEMANA.xlsx'
+];
+function configurarToken(){const p=PropertiesService.getScriptProperties();if(!p.getProperty('API_TOKEN'))p.setProperty('API_TOKEN',Utilities.getUuid()+Utilities.getUuid());console.log('TOKEN: OK');}
+function listarArquivos(){const it=DriveApp.getFolderById(PASTA_ID).getFiles(),out=[];while(it.hasNext()){const f=it.next();out.push({nome:f.getName(),id:f.getId(),tipo:f.getMimeType(),tamanho:f.getSize(),atualizado:f.getLastUpdated().toISOString()});}return out.sort((a,b)=>a.nome.localeCompare(b.nome));}
+function resposta(x){return ContentService.createTextOutput(JSON.stringify(x)).setMimeType(ContentService.MimeType.JSON);}
+function obterArquivoExcel(nome){
+ if(PERMITIDOS.indexOf(nome)<0)return {sucesso:false,erro:'Arquivo não autorizado'};
+ const it=DriveApp.getFolderById(PASTA_ID).getFilesByName(nome);
+ if(!it.hasNext())return {sucesso:false,erro:'Arquivo não encontrado'};
+ const f=it.next(),n=f.getSize();
+ if(n<=0||n>LIMITE_BYTES)return {sucesso:false,erro:'Arquivo excede o limite de 12 MB'};
+ if(f.getMimeType()!=='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')return {sucesso:false,erro:'Tipo de arquivo inválido'};
+ const bytes=f.getBlob().getBytes();
+ return {sucesso:true,nome:f.getName(),tamanho:n,atualizado:f.getLastUpdated().toISOString(),conteudoBase64:Utilities.base64Encode(bytes)};
+}
+function doGet(e){
+ try{
+  const p=(e&&e.parameter)||{},token=PropertiesService.getScriptProperties().getProperty('API_TOKEN');
+  if(!token||p.token!==token)return resposta({sucesso:false,erro:'Não autorizado'});
+  if(p.acao==='listar'){const a=listarArquivos();return resposta({sucesso:true,pasta:'Dados Matinal',total:a.length,arquivos:a});}
+  if(p.acao==='status')return resposta({sucesso:true,sistema:'Matinal Comercial Nacional',status:'online',data:new Date().toISOString()});
+  if(p.acao==='arquivo')return resposta(obterArquivoExcel(p.nome||''));
+  return resposta({sucesso:false,erro:'Ação inválida'});
+ }catch(err){console.error('API Drive',err);return resposta({sucesso:false,erro:'Erro interno ao ler arquivo'});}
+}
+function testarLeituraExcel(){const r=obterArquivoExcel('VENDA SEMANA.xlsx');console.log(JSON.stringify({sucesso:r.sucesso,nome:r.nome,tamanho:r.tamanho,erro:r.erro}));}

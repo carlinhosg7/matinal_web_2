@@ -1,3 +1,4 @@
+import {abrirDrive,encontrarDrive} from '../../../lib/drive-source';
 import {NextResponse} from 'next/server';
 import {usuarioAtual,adminDb} from '../../../lib/matinal-auth';
 import fs from 'node:fs';
@@ -13,8 +14,8 @@ const norm=(v:unknown)=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/
 const str=(v:unknown)=>String(v??'').trim().replace(/\.0$/,'');
 const numero=(v:unknown)=>{if(typeof v==='number')return Number.isFinite(v)?v:0;const s=str(v);const n=Number(s.includes(',')?s.replace(/\./g,'').replace(',','.'):s);return Number.isFinite(n)?n:0};
 const campo=(r:Registro,...keys:string[])=>{for(const k of keys){const v=r[norm(k)];if(v!==undefined&&v!==null&&str(v)!=='')return v}return undefined};
-function encontrar(dir:string,nome:string){const files=fs.readdirSync(dir);const f=files.find(x=>norm(path.parse(x).name)===norm(path.parse(nome).name)&&/\.xlsx$/i.test(x)&&!x.startsWith('~$'));if(!f)throw Error(`Arquivo ${nome} não encontrado em ${dir}`);return path.join(dir,f)}
-function ler(file:string,header:number):Registro[]{const w=XLSX.read(fs.readFileSync(file),{type:'buffer',cellDates:true});const sheet=w.Sheets[w.SheetNames[0]];const matriz=XLSX.utils.sheet_to_json<unknown[]>(sheet,{header:1,defval:'',raw:true});const h=(matriz[header-1]||[]).map(norm);if(!h.length)throw Error(`Cabeçalho ausente em ${path.basename(file)}`);return matriz.slice(header).filter(row=>row.some(v=>v!==''&&v!==null)).map(row=>Object.fromEntries(h.map((k,i)=>[k,row[i]]).filter(([k])=>Boolean(k))))}
+function encontrar(_dir:string,nome:string){return encontrarDrive([nome])}
+async function ler(file:string,header:number):Promise<Registro[]>{const w=await abrirDrive(file);const sheet=w.Sheets[w.SheetNames[0]];const matriz=XLSX.utils.sheet_to_json<unknown[]>(sheet,{header:1,defval:'',raw:true});const h=(matriz[header-1]||[]).map(norm);if(!h.length)throw Error(`Cabeçalho ausente em ${file}`);return matriz.slice(header).filter(row=>row.some(v=>v!==''&&v!==null)).map(row=>Object.fromEntries(h.map((k,i)=>[k,row[i]]).filter(([k])=>Boolean(k))))}
 function data(v:unknown){if(v instanceof Date)return new Date(Date.UTC(v.getFullYear(),v.getMonth(),v.getDate()));if(typeof v==='number')return new Date(Date.UTC(1899,11,30)+v*86400000);const s=str(v);const br=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);return br?new Date(Date.UTC(+br[3],+br[2]-1,+br[1])):new Date(s)}
 function classificar(raw:string):{secao:Secao;regional:string;gerente:string}{const n=norm(raw);
  if(n==='B2B')return {secao:'B2B',regional:'B2B',gerente:'Maurício'};
@@ -37,9 +38,9 @@ export async function GET(){try{
  const codigos=(cfg?.regionais||[]) as string[];
  const permitidos=new Set(codigos.map(c=>norm(classificar(c).regional)));
  const dir=(process.env.MATINAL_ENTRADA_DIR||process.env.MATINAL_DATA_DIR||'I:\\Meu Drive\\Dados Matinal').trim();
- const venda=ler(encontrar(dir,'VENDA SEMANA.xlsx'),4);
- const metas=ler(encontrar(dir,'META DE ENTRADA DO MES.xlsx'),1);
- const cadastro=ler(encontrar(dir,'CAD_REPRESENTANTE.xlsx'),1);
+ const venda=await ler(encontrar(dir,'VENDA SEMANA.xlsx'),4);
+ const metas=await ler(encontrar(dir,'META DE ENTRADA DO MES.xlsx'),1);
+ const cadastro=await ler(encontrar(dir,'CAD_REPRESENTANTE.xlsx'),1);
  const mapa=new Map<string,string>();for(const r of cadastro){const id=str(campo(r,'Codigo Representante','Codigo Rep'));const regional=str(campo(r,'Supervisor'));if(id&&regional)mapa.set(id,regional)}
  const datas=venda.map(r=>data(campo(r,'Data Cadastro'))).filter(d=>!isNaN(d.getTime()));if(!datas.length)throw Error('VENDA SEMANA sem datas válidas');
  const maisRecente=datas.reduce((a,b)=>a>b?a:b);const ano=maisRecente.getUTCFullYear(),mes=maisRecente.getUTCMonth();
