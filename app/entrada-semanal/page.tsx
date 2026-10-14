@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import Link from 'next/link';
 type Secao='NACIONAL'|'RN'|'B2B';
 type Tipo='PRODUCAO'|'KIDEX';
-type Linha={secao:Secao;regional:string;gerente:string;tipo:Tipo;meta:number;realizado:number};
+type Linha={secao:Secao;regional:string;gerente:string;representante?:string;tipo:Tipo;meta:number;realizado:number};
 type Semana={numero:number;inicio:number;fim:number;linhas:Linha[]};
 type Api={periodo:string;semanas:Semana[];avisos:string[];erro?:string};
 const fmt=(n:number)=>n.toLocaleString('pt-BR',{maximumFractionDigits:0});
@@ -15,11 +15,11 @@ export default function EntradaSemanal(){
  const atual=dados?.semanas.find(s=>s.numero===semana)||dados?.semanas[0];
  function tabela(titulo:string,tipo:'GERAL'|Tipo){
   const agrupados=new Map<string,Linha>();
-  for(const l of atual?.linhas||[]){if(l.secao!==segmento||(tipo!=='GERAL'&&l.tipo!==tipo))continue;const key=l.regional;const prev=agrupados.get(key);if(prev){prev.meta+=l.meta;prev.realizado+=l.realizado}else agrupados.set(key,{...l})}
+  for(const l of atual?.linhas||[]){if(l.secao!==segmento||(tipo!=='GERAL'&&l.tipo!==tipo))continue;const key=segmento==='B2B'?(l.representante||l.regional):l.regional;const prev=agrupados.get(key);if(prev){prev.meta+=l.meta;prev.realizado+=l.realizado}else agrupados.set(key,{...l})}
   const linhas=[...agrupados.values()].sort((a,b)=>a.regional.localeCompare(b.regional,'pt-BR'));
   const meta=linhas.reduce((s,l)=>s+l.meta,0),realizado=linhas.reduce((s,l)=>s+l.realizado,0);
-  function linha(l:Linha,isTotal=false){return <tr key={l.regional} style={{fontWeight:isTotal?800:400,background:isTotal?'#eef2f7':'white'}}><td style={cell}>{l.regional}</td><td style={cell}>{l.gerente}</td><td style={{...cell,textAlign:'right'}}>{fmt(l.meta)}</td><td style={{...cell,textAlign:'right'}}>{fmt(l.realizado)}</td><td style={{...cell,textAlign:'right',background:l.realizado<l.meta?'#fee2e2':'#dcfce7'}}>{fmt(l.realizado-l.meta)}</td><td style={{...cell,textAlign:'right',background:l.realizado<l.meta?'#fee2e2':'#dcfce7'}}>{pct(l.meta,l.realizado)}</td></tr>}
-  return <section key={titulo} style={{marginBottom:26}}><h2 style={{fontSize:18,background:'#90a9d3',textAlign:'center',padding:12,margin:0}}>{titulo}</h2><div style={{overflowX:'auto'}}><table style={{borderCollapse:'collapse',width:'100%',minWidth:750}}><thead><tr>{['REGIONAL','GERENTE','META SEMANA','REALIZADO SEMANA','DIF.','▲ %'].map(h=><th key={h} style={{...cell,background:'#f8fafc'}}>{h}</th>)}</tr></thead><tbody>{linhas.map(l=>linha(l))}{linha({secao:segmento,regional:'TOTAL',gerente:'—',tipo:'PRODUCAO',meta,realizado},true)}</tbody></table></div></section>;
+  function linha(l:Linha,isTotal=false){return <tr key={l.regional} style={{fontWeight:isTotal?800:400,background:isTotal?'#eef2f7':'white'}}><td style={cell}>{segmento==='B2B'?(l.representante||l.regional):l.regional}</td><td style={cell}>{l.gerente}</td><td style={{...cell,textAlign:'right'}}>{fmt(l.meta)}</td><td style={{...cell,textAlign:'right'}}>{fmt(l.realizado)}</td><td style={{...cell,textAlign:'right',background:l.realizado<l.meta?'#fee2e2':'#dcfce7'}}>{fmt(l.realizado-l.meta)}</td><td style={{...cell,textAlign:'right',background:l.realizado<l.meta?'#fee2e2':'#dcfce7'}}>{pct(l.meta,l.realizado)}</td></tr>}
+  return <section key={titulo} style={{marginBottom:26}}><h2 style={{fontSize:18,background:'#90a9d3',textAlign:'center',padding:12,margin:0}}>{titulo}</h2><div style={{overflowX:'auto'}}><table style={{borderCollapse:'collapse',width:'100%',minWidth:750}}><thead><tr>{[segmento==='B2B'?'REPRESENTANTE':'REGIONAL','GERENTE','META SEMANA','REALIZADO SEMANA','DIF.','▲ %'].map(h=><th key={h} style={{...cell,background:'#f8fafc'}}>{h}</th>)}</tr></thead><tbody>{linhas.map(l=>linha(l))}{linha({secao:segmento,regional:'TOTAL',gerente:'—',tipo:'PRODUCAO',meta,realizado},true)}</tbody></table></div></section>;
  }
  async function gerarPdf(){
   if(!atual||!dados)return;
@@ -29,14 +29,14 @@ export default function EntradaSemanal(){
   const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   const W=297,H=210,M=11;
   const titulos:[string,'GERAL'|Tipo][]=[['GERAL','GERAL'],['PRODUÇÃO — PEDIDO NORMAL','PRODUCAO'],['PRONTA ENTREGA — KIDEX','KIDEX']];
-  const colunas=['REGIONAL','GERENTE','META SEMANA','REALIZADO SEMANA','DIF.','%'];
+  const colunas=[segmento==='B2B'?'REPRESENTANTE':'REGIONAL','GERENTE','META SEMANA','REALIZADO SEMANA','DIF.','%'];
   const larguras=[53,43,45,51,40,43];
   const linhasDaTabela=(secao:Secao,tipo:'GERAL'|Tipo)=>{
    const mapa=new Map<string,Linha>();
    for(const l of semanaAtual.linhas){if(l.secao!==secao||(tipo!=='GERAL'&&l.tipo!==tipo))continue;
-    const anterior=mapa.get(l.regional);
+    const chave=secao==='B2B'?(l.representante||l.regional):l.regional;const anterior=mapa.get(chave);
     if(anterior){anterior.meta+=l.meta;anterior.realizado+=l.realizado;}
-    else mapa.set(l.regional,{...l});
+    else mapa.set(chave,{...l});
    }
    const linhas=[...mapa.values()].sort((a,b)=>a.regional.localeCompare(b.regional,'pt-BR'));
    const meta=linhas.reduce((a,l)=>a+l.meta,0),realizado=linhas.reduce((a,l)=>a+l.realizado,0);
@@ -62,7 +62,7 @@ export default function EntradaSemanal(){
     pdf.rect(M,yy,W-2*M,rowH,'F');
     pdf.setDrawColor(202,211,224);pdf.setLineWidth(0.15);
     let x=M;
-    const valores=linha?[linha.regional,linha.gerente,fmt(linha.meta),fmt(linha.realizado),fmt(linha.realizado-linha.meta),pct(linha.meta,linha.realizado)]:colunas;
+    const valores=linha?[secao==='B2B'?(linha.representante||linha.regional):linha.regional,linha.gerente,fmt(linha.meta),fmt(linha.realizado),fmt(linha.realizado-linha.meta),pct(linha.meta,linha.realizado)]:(secao==='B2B'?['REPRESENTANTE',...colunas.slice(1)]:colunas);
     pdf.setFont('helvetica',i===0||total?'bold':'normal');pdf.setFontSize(fontSize);pdf.setTextColor(26,42,65);
     valores.forEach((v,j)=>{
      pdf.rect(x,yy,larguras[j],rowH);
@@ -84,7 +84,7 @@ export default function EntradaSemanal(){
    pdf.text(descricao,M,22);
    pdf.setFontSize(9);pdf.text('Semana '+semanaAtual.numero+'  •  '+String(semanaAtual.inicio).padStart(2,'0')+' a '+String(semanaAtual.fim).padStart(2,'0')+'/'+dadosAtuais.periodo,W-M,22,{align:'right'});
    pdf.setFontSize(8);pdf.setTextColor(110,122,139);
-   pdf.text('Matinal Comercial  •  Página '+pagina+' de 2',W-M,H-5,{align:'right'});
+   pdf.text('Matinal Comercial  •  Página '+pagina+' de 3',W-M,H-5,{align:'right'});
   }
   cabecalho(1,'NACIONAL — Geral, Produção e Kidex');
   const tabelasNacional=titulos.map(([titulo,tipo])=>({titulo,tipo,linhas:linhasDaTabela('NACIONAL',tipo).length}));
@@ -93,15 +93,20 @@ export default function EntradaSemanal(){
   const soma1=pesos1.reduce((a,b)=>a+b,0);
   let y=29;
   tabelasNacional.forEach((t,i)=>{const h=espaco1*pesos1[i]/soma1;tabelaPdf('NACIONAL',t.tipo,t.titulo,y,h);y+=h+3;});
-  pdf.addPage();cabecalho(2,'RN E B2B — Todas as tabelas');
-  const grupos=(['RN','B2B'] as Secao[]).flatMap(secao=>titulos.map(([titulo,tipo])=>({secao,titulo,tipo,linhas:linhasDaTabela(secao,tipo).length})));
-  const pesos2=grupos.map(g=>Math.max(3,g.linhas+2));
-  const soma2=pesos2.reduce((a,b)=>a+b,0);
-  const espaco2=H-35-17;
+  pdf.addPage();cabecalho(2,'RN — Geral, Produção e Kidex');
+  const gruposRn=titulos.map(([titulo,tipo])=>({titulo,tipo,linhas:linhasDaTabela('RN',tipo).length}));
+  const pesosRn=gruposRn.map(g=>Math.max(3,g.linhas+2));
+  const somaRn=pesosRn.reduce((a,b)=>a+b,0);
   y=29;
-  grupos.forEach((g,i)=>{const h=espaco2*pesos2[i]/soma2;tabelaPdf(g.secao,g.tipo,g.secao+' — '+g.titulo,y,h);y+=h+2;});
+  gruposRn.forEach((g,i)=>{const h=espaco1*pesosRn[i]/somaRn;tabelaPdf('RN',g.tipo,'RN — '+g.titulo,y,h);y+=h+3;});
+  pdf.addPage();cabecalho(3,'B2B — Por representante | Geral, Produção e Kidex');
+  const gruposB2b=titulos.map(([titulo,tipo])=>({titulo,tipo,linhas:linhasDaTabela('B2B',tipo).length}));
+  const pesosB2b=gruposB2b.map(g=>Math.max(3,g.linhas+2));
+  const somaB2b=pesosB2b.reduce((a,b)=>a+b,0);
+  y=29;
+  gruposB2b.forEach((g,i)=>{const h=espaco1*pesosB2b[i]/somaB2b;tabelaPdf('B2B',g.tipo,'B2B — '+g.titulo,y,h);y+=h+3;});
   pdf.save('KIDY_Entrada_Semanal_Semana_'+semanaAtual.numero+'_'+dadosAtuais.periodo.replace(/\W/g,'-')+'.pdf');
  }
  const botao=(ativo:boolean):React.CSSProperties=>({padding:'11px 20px',border:0,borderRadius:7,cursor:'pointer',background:ativo?'#f97316':'#dbe2ed',color:ativo?'white':'#1f2937',fontWeight:700});
- return <main style={{background:'#f4f6f9',minHeight:'100vh',padding:'28px 18px',fontFamily:'Arial,sans-serif'}}><div style={{maxWidth:1150,margin:'auto'}}><Link href="/portal">← Voltar ao portal</Link><header style={{display:'flex',alignItems:'center',gap:22,margin:'22px 0'}}><img src="/kidy-logo.png" alt="KIDY" style={{width:110}}/><div><h1 style={{color:'#f97316',margin:0}}>ENTRADA SEMANAL</h1><strong>{dados?.periodo||'Carregando período...'}</strong></div></header><div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:18}}>{(['NACIONAL','RN','B2B'] as Secao[]).map(s=><button key={s} onClick={()=>setSegmento(s)} style={botao(segmento===s)}>{s==='NACIONAL'?'Nacional':s}</button>)}</div>{erro&&<p role="alert" style={{color:'#b91c1c'}}>{erro}</p>}<div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:24}}>{dados?.semanas.map(s=><button key={s.numero} onClick={()=>setSemana(s.numero)} style={botao(semana===s.numero)}>Semana {s.numero}</button>)}{atual&&<button onClick={gerarPdf} style={{...botao(false),background:'#1f4676',color:'#fff',marginLeft:'auto'}}>📄 Gerar PDF (2 páginas)</button>}</div>{atual&&<><p style={{fontWeight:700}}>PERÍODO: {String(atual.inicio).padStart(2,'0')} A {String(atual.fim).padStart(2,'0')} / {dados?.periodo}</p>{tabela('GERAL','GERAL')}{tabela('PRODUÇÃO — PEDIDO NORMAL','PRODUCAO')}{tabela('PRONTA ENTREGA — KIDEX','KIDEX')}</>}{dados?.avisos?.map((a,i)=><p key={i} style={{fontSize:12,color:'#64748b'}}>{a}</p>)}</div></main>;
+ return <main style={{background:'#f4f6f9',minHeight:'100vh',padding:'28px 18px',fontFamily:'Arial,sans-serif'}}><div style={{maxWidth:1150,margin:'auto'}}><Link href="/portal">← Voltar ao portal</Link><header style={{display:'flex',alignItems:'center',gap:22,margin:'22px 0'}}><img src="/kidy-logo.png" alt="KIDY" style={{width:110}}/><div><h1 style={{color:'#f97316',margin:0}}>ENTRADA SEMANAL</h1><strong>{dados?.periodo||'Carregando período...'}</strong></div></header><div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:18}}>{(['NACIONAL','RN','B2B'] as Secao[]).map(s=><button key={s} onClick={()=>setSegmento(s)} style={botao(segmento===s)}>{s==='NACIONAL'?'Nacional':s}</button>)}</div>{erro&&<p role="alert" style={{color:'#b91c1c'}}>{erro}</p>}<div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:24}}>{dados?.semanas.map(s=><button key={s.numero} onClick={()=>setSemana(s.numero)} style={botao(semana===s.numero)}>Semana {s.numero}</button>)}{atual&&<button onClick={gerarPdf} style={{...botao(false),background:'#1f4676',color:'#fff',marginLeft:'auto'}}>📄 Gerar PDF (3 páginas)</button>}</div>{atual&&<><p style={{fontWeight:700}}>PERÍODO: {String(atual.inicio).padStart(2,'0')} A {String(atual.fim).padStart(2,'0')} / {dados?.periodo}</p>{tabela('GERAL','GERAL')}{tabela('PRODUÇÃO — PEDIDO NORMAL','PRODUCAO')}{tabela('PRONTA ENTREGA — KIDEX','KIDEX')}</>}{dados?.avisos?.map((a,i)=><p key={i} style={{fontSize:12,color:'#64748b'}}>{a}</p>)}</div></main>;
 }
