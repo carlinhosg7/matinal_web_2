@@ -6,20 +6,28 @@ import { adminDb } from '../../../../lib/matinal-auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
-  let response = NextResponse.json(
-    { ok: true },
-    { headers: { 'Cache-Control': 'no-store' } }
-  );
+type CookieItem = {
+  name: string;
+  value: string;
+  options?: Parameters<NextResponse['cookies']['set']>[2];
+};
 
+function json(
+  dados: Record<string, unknown>,
+  status = 200
+) {
+  return NextResponse.json(dados, {
+    status,
+    headers: { 'Cache-Control': 'no-store' },
+  });
+}
+
+export async function POST(req: NextRequest) {
   try {
     const body: unknown = await req.json();
 
     if (!body || typeof body !== 'object') {
-      return NextResponse.json(
-        { erro: 'Dados inválidos' },
-        { status: 400 }
-      );
+      return json({ erro: 'Dados inválidos' }, 400);
     }
 
     const { email, senha } = body as Record<string, unknown>;
@@ -32,23 +40,21 @@ export async function POST(req: NextRequest) {
       !senha ||
       senha.length > 1024
     ) {
-      return NextResponse.json(
-        { erro: 'Dados inválidos' },
-        { status: 400 }
-      );
+      return json({ erro: 'Dados inválidos' }, 400);
     }
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!url || !key) {
-      console.error('[login] Configuração Supabase incompleta');
-
-      return NextResponse.json(
+      console.error('[login] Variáveis Supabase ausentes');
+      return json(
         { erro: 'Configuração de autenticação incompleta' },
-        { status: 500 }
+        500
       );
     }
+
+    const cookiesPendentes: CookieItem[] = [];
 
     const db = createServerClient(url, key, {
       cookies: {
@@ -57,24 +63,19 @@ export async function POST(req: NextRequest) {
         },
 
         setAll(items) {
-          items.forEach(({ name, value }) => {
-            req.cookies.set(name, value);
+          items.forEach(item => {
+            req.cookies.set(item.name, item.value);
+
+            const indice = cookiesPendentes.findIndex(
+              cookie => cookie.name === item.name
+            );
+
+            if (indice >= 0) {
+              cookiesPendentes[indice] = item;
+            } else {
+              cookiesPendentes.push(item);
+            }
           });
-
-          const novaResposta = NextResponse.json(
-            { ok: true },
-            { headers: { 'Cache-Control': 'no-store' } }
-          );
-
-          response.cookies.getAll().forEach(cookie => {
-            novaResposta.cookies.set(cookie);
-          });
-
-          items.forEach(({ name, value, options }) => {
-            novaResposta.cookies.set(name, value, options);
-          });
-
-          response = novaResposta;
         },
       },
     });
@@ -85,10 +86,8 @@ export async function POST(req: NextRequest) {
     });
 
     if (error || !data.user) {
-      return NextResponse.json(
-        { erro: 'E-mail ou senha inválidos' },
-        { status: 401 }
-      );
+      console.warn('[login] Credenciais recusadas');
+      return json({ erro: 'E-mail ou senha inválidos' }, 401);
     }
 
     const admin = adminDb();
@@ -101,20 +100,21 @@ export async function POST(req: NextRequest) {
 
     if (perfilErro) {
       console.error(
-        '[login] Erro ao consultar perfil:',
+        '[login] Consulta de perfil falhou:',
+        perfilErro.code,
         perfilErro.message
       );
 
-      return NextResponse.json(
+      return json(
         { erro: 'Erro ao consultar cadastro do usuário' },
-        { status: 500 }
+        500
       );
     }
 
     if (!perfil || !perfil.ativo) {
-      return NextResponse.json(
+      return json(
         { erro: 'Usuário sem cadastro ativo no Matinal' },
-        { status: 403 }
+        403
       );
     }
 
@@ -122,38 +122,38 @@ export async function POST(req: NextRequest) {
       ? '/trocar-senha'
       : '/portal';
 
-    // Retorna os cookies diretamente na resposta final.
-    // Preserva os atributos definidos pelo Supabase.
-    response = NextResponse.json(
+    const resposta = NextResponse.json(
       { ok: true, destino },
-      { headers: { 'Cache-Control': 'no-store' } }
+      {
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      }
     );
 
-    // Garante que a sessão seja escrita na resposta final.
-    // A autenticação anterior pode ter atualizado os cookies
-    // da requisição, por isso consultamos a sessão atual.
-    const { data: sessao, error: erroSessao } =
-      await db.auth.getSession();
-
-    if (erroSessao || !sessao.session) {
-      console.error('[login] Sessão não disponível após login');
-
-      return NextResponse.json(
-        { erro: 'Não foi possível estabelecer a sessão' },
-        { status: 500 }
+    cookiesPendentes.forEach(cookie => {
+      resposta.cookies.set(
+        cookie.name,
+        cookie.value,
+        cookie.options
       );
-    }
+    });
 
-    return response;
+    console.info('[login] Autenticação concluída', {
+      cookiesGerados: cookiesPendentes.length,
+      perfil: perfil.perfil,
+    });
+
+    return resposta;
   } catch (error) {
     console.error(
       '[login] Erro inesperado:',
       error instanceof Error ? error.message : error
     );
 
-    return NextResponse.json(
+    return json(
       { erro: 'Não foi possível concluir o login' },
-      { status: 500 }
+      500
     );
   }
 }
