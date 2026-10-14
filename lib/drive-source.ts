@@ -21,7 +21,42 @@ export function encontrarDrive(nomes: string[]): string {
  if (!found) throw new Error(`Planilha não cadastrada no Drive: ${nomes.join(' / ')}`);
  return found;
 }
+// Cache em memoria por instancia serverless: 15 minutos, ate 3 planilhas.
+// Requisicoes simultaneas compartilham o mesmo download.
+const TTL_MS = 15 * 60 * 1000;
+const MAX_ENTRIES = 3;
+type CacheEntry = { workbook: XLSX.WorkBook; expires: number };
+const workbookCache = new Map<string, CacheEntry>();
+const pending = new Map<string, Promise<XLSX.WorkBook>>();
+
 export async function abrirDrive(nome: string): Promise<XLSX.WorkBook> {
+ if (!allowed.has(nome)) throw new Error(`Arquivo nao permitido: ${nome}`);
+ const now = Date.now();
+ for (const [key, entry] of workbookCache) {
+  if (entry.expires <= now) workbookCache.delete(key);
+ }
+ const hit = workbookCache.get(nome);
+ if (hit) {
+  workbookCache.delete(nome);
+  workbookCache.set(nome, hit);
+  return hit.workbook;
+ }
+ const ongoing = pending.get(nome);
+ if (ongoing) return ongoing;
+ const task = baixarEProcessar(nome).then(workbook => {
+  workbookCache.set(nome, { workbook, expires: Date.now() + TTL_MS });
+  while (workbookCache.size > MAX_ENTRIES) {
+   const oldest = workbookCache.keys().next().value;
+   if (oldest === undefined) break;
+   workbookCache.delete(oldest);
+  }
+  return workbook;
+ }).finally(() => { pending.delete(nome); });
+ pending.set(nome, task);
+ return task;
+}
+
+async function baixarEProcessar(nome: string): Promise<XLSX.WorkBook> {
  if (!allowed.has(nome)) throw new Error(`Arquivo não permitido: ${nome}`);
  const script = process.env.GOOGLE_APPS_SCRIPT_URL;
  const token = process.env.GOOGLE_APPS_SCRIPT_TOKEN;
