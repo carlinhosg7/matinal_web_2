@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 
 const modulos = [
   { nome: 'Matinal', rota: '/matinal', detalhe: 'Indicadores comerciais' },
+  { nome: 'Entrada Semanal', rota: '/entrada-semanal', detalhe: 'Metas e realizado por regional' },
   { nome: 'Representantes', rota: '/representantes', detalhe: 'Gestão de representantes' },
   { nome: 'Kidex', rota: '/kidex', detalhe: 'Indicadores Kidex' },
   { nome: 'Export', rota: '/export', detalhe: 'Exportação' },
