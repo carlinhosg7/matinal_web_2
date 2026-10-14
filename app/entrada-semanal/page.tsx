@@ -16,10 +16,10 @@ export default function EntradaSemanal(){
  function tabela(titulo:string,tipo:'GERAL'|Tipo){
   const agrupados=new Map<string,Linha>();
   for(const l of atual?.linhas||[]){if(l.secao!==segmento||(tipo!=='GERAL'&&l.tipo!==tipo))continue;const key=segmento==='B2B'?(l.representante||l.regional):l.regional;const prev=agrupados.get(key);if(prev){prev.meta+=l.meta;prev.realizado+=l.realizado}else agrupados.set(key,{...l})}
-  const linhas=[...agrupados.values()].sort((a,b)=>a.regional.localeCompare(b.regional,'pt-BR'));
+  const linhas=[...agrupados.values()].sort((a,b)=>(segmento==='B2B'?(a.representante||''):(a.regional)).localeCompare(segmento==='B2B'?(b.representante||''):b.regional,'pt-BR'));
   const meta=linhas.reduce((s,l)=>s+l.meta,0),realizado=linhas.reduce((s,l)=>s+l.realizado,0);
   function linha(l:Linha,isTotal=false){return <tr key={l.regional} style={{fontWeight:isTotal?800:400,background:isTotal?'#eef2f7':'white'}}><td style={cell}>{segmento==='B2B'?(l.representante||l.regional):l.regional}</td><td style={cell}>{l.gerente}</td><td style={{...cell,textAlign:'right'}}>{fmt(l.meta)}</td><td style={{...cell,textAlign:'right'}}>{fmt(l.realizado)}</td><td style={{...cell,textAlign:'right',background:l.realizado<l.meta?'#fee2e2':'#dcfce7'}}>{fmt(l.realizado-l.meta)}</td><td style={{...cell,textAlign:'right',background:l.realizado<l.meta?'#fee2e2':'#dcfce7'}}>{pct(l.meta,l.realizado)}</td></tr>}
-  return <section key={titulo} style={{marginBottom:26}}><h2 style={{fontSize:18,background:'#90a9d3',textAlign:'center',padding:12,margin:0}}>{titulo}</h2><div style={{overflowX:'auto'}}><table style={{borderCollapse:'collapse',width:'100%',minWidth:750}}><thead><tr>{[segmento==='B2B'?'REPRESENTANTE':'REGIONAL','GERENTE','META SEMANA','REALIZADO SEMANA','DIF.','▲ %'].map(h=><th key={h} style={{...cell,background:'#f8fafc'}}>{h}</th>)}</tr></thead><tbody>{linhas.map(l=>linha(l))}{linha({secao:segmento,regional:'TOTAL',gerente:'—',tipo:'PRODUCAO',meta,realizado},true)}</tbody></table></div></section>;
+  return <section key={titulo} style={{marginBottom:26}}><h2 style={{fontSize:18,background:'#90a9d3',textAlign:'center',padding:12,margin:0}}>{titulo}</h2><div style={{overflowX:'auto'}}><table style={{borderCollapse:'collapse',width:'100%',minWidth:750}}><thead><tr>{[segmento==='B2B'?'REPRESENTANTE':'REGIONAL','GERENTE','META SEMANA','REALIZADO SEMANA','DIF.','▲ %'].map(h=><th key={h} style={{...cell,background:'#f8fafc'}}>{h}</th>)}</tr></thead><tbody>{linhas.map(l=>linha(l))}{linha({secao:segmento,regional:'TOTAL',representante:'TOTAL',gerente:'—',tipo:'PRODUCAO',meta,realizado},true)}</tbody></table></div></section>;
  }
  async function gerarPdf(){
   if(!atual||!dados)return;
@@ -29,7 +29,7 @@ export default function EntradaSemanal(){
   const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   const W=297,H=210,M=11;
   const titulos:[string,'GERAL'|Tipo][]=[['GERAL','GERAL'],['PRODUÇÃO — PEDIDO NORMAL','PRODUCAO'],['PRONTA ENTREGA — KIDEX','KIDEX']];
-  const colunas=[segmento==='B2B'?'REPRESENTANTE':'REGIONAL','GERENTE','META SEMANA','REALIZADO SEMANA','DIF.','%'];
+  const colunas=['REGIONAL','GERENTE','META SEMANA','REALIZADO SEMANA','DIF.','%'];
   const larguras=[53,43,45,51,40,43];
   const linhasDaTabela=(secao:Secao,tipo:'GERAL'|Tipo)=>{
    const mapa=new Map<string,Linha>();
@@ -38,9 +38,9 @@ export default function EntradaSemanal(){
     if(anterior){anterior.meta+=l.meta;anterior.realizado+=l.realizado;}
     else mapa.set(chave,{...l});
    }
-   const linhas=[...mapa.values()].sort((a,b)=>a.regional.localeCompare(b.regional,'pt-BR'));
+   const linhas=[...mapa.values()].sort((a,b)=>(secao==='B2B'?(a.representante||''):a.regional).localeCompare(secao==='B2B'?(b.representante||''):b.regional,'pt-BR'));
    const meta=linhas.reduce((a,l)=>a+l.meta,0),realizado=linhas.reduce((a,l)=>a+l.realizado,0);
-   return [...linhas,{secao,regional:'TOTAL',gerente:'—',tipo:'PRODUCAO' as Tipo,meta,realizado}];
+   return [...linhas,{secao,regional:'TOTAL',representante:'TOTAL',gerente:'—',tipo:'PRODUCAO' as Tipo,meta,realizado}];
   };
   function texto(t:string,x:number,y:number,align:'left'|'center'|'right'='left'){
    pdf.text(t,x,y,{align,maxWidth:align==='left'?52:undefined});
