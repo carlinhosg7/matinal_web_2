@@ -24,7 +24,7 @@ const moeda=(v:number)=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL
 
 const inteiro=(v:number)=>v.toLocaleString('pt-BR',{maximumFractionDigits:0});
 
-const pct=(v:number,base:number)=>base===0?'â€”':(v/base*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+const pct=(v:number,base:number)=>base===0?'—':(v/base*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
 
 const parametroMes=(hoje:Date)=>{
 
@@ -71,15 +71,15 @@ export default function Entrada(){
 
  const titulo=regionais.length===0?'NACIONAL':regionais.length===1?regionais[0]:'REGIONAIS SELECIONADAS';
 
- const card=(rotulo:string,valor:string,tipo='')=><div className={'en-card '+tipo}><span>{rotulo}</span><strong>{dados&&dadosSemanaValidos?valor:'â€”'}</strong></div>;
+ const card=(rotulo:string,valor:string,tipo='')=><div className={'en-card '+tipo}><span>{rotulo}</span><strong>{dados&&dadosSemanaValidos?valor:'—'}</strong></div>;
 
  const tabela=(por:'supervisor'|'representante')=><section className="en-table"><div className="en-scroll"><SortableTable><thead><tr><th>{por==='supervisor'?'Supervisor':'Representante'}</th><th>Meta Pares</th><th>Realizado Pares</th><th>Dif. Pares</th><th>Î” %</th><th>Meta Valor</th><th>Realizado Valor</th><th>Dif. Valor</th><th>Î” %</th></tr></thead><tbody>{(por==='supervisor'?grupos.map(g=>({nome:g.nome,t:g.t})):filtrados.map(x=>({nome:x.nome,t:x}))).map(({nome,t},i)=><tr key={nome+i}><td>{nome}</td><td>{inteiro(t.metaPares)}</td><td>{inteiro(t.realPares)}</td><td>{inteiro(t.realPares-t.metaPares)}</td><td>{pct(t.realPares,t.metaPares)}</td><td>{moeda(t.metaValor)}</td><td>{moeda(t.realValor)}</td><td>{moeda(t.realValor-t.metaValor)}</td><td>{pct(t.realValor,t.metaValor)}</td></tr>)}<tr className="en-total"><td>Total</td><td>{inteiro(total.metaPares)}</td><td>{inteiro(total.realPares)}</td><td>{inteiro(total.realPares-total.metaPares)}</td><td>{pct(total.realPares,total.metaPares)}</td><td>{moeda(total.metaValor)}</td><td>{moeda(total.realValor)}</td><td>{moeda(total.realValor-total.metaValor)}</td><td>{pct(total.realValor,total.metaValor)}</td></tr></tbody></SortableTable></div></section>;
 
  return <main className="en-wrap">
 
- <nav className="en-nav" aria-label="NavegaÃ§Ã£o Matinal">{links.map(([nome,url])=><Link key={url} href={url} className={url==='/entrada'?'active':''}>{nome}</Link>)}</nav>
+ <nav className="en-nav" aria-label="Navegação Matinal">{links.map(([nome,url])=><Link key={url} href={url} className={url==='/entrada'?'active':''}>{nome}</Link>)}</nav>
 
- <header className="en-header"><Image src="/kidy-logo.png" alt="Kidy" width={135} height={105} style={{objectFit:'contain'}} priority/><h1>ENTRADA MENSAL</h1><div className="en-actions"><button onClick={()=>{setRegionais([]);setRep('');setModo('ambos');setSemana(null)}}>LIMPAR TODOS OS FILTROS</button><Link href="/portal">VOLTAR AO INÃCIO</Link></div></header>
+ <header className="en-header"><Image src="/kidy-logo.png" alt="Kidy" width={135} height={105} style={{objectFit:'contain'}} priority/><h1>ENTRADA MENSAL</h1><div className="en-actions"><button onClick={()=>{setRegionais([]);setRep('');setModo('ambos');setSemana(null)}}>LIMPAR TODOS OS FILTROS</button><Link href="/portal">VOLTAR AO INÍCIO</Link></div></header>
 
  <section className="en-region"><small>Supervisor</small><div>{(dados?.supervisores||[]).map(n=><button key={n} className={regionais.includes(n)?'selected':''} onClick={()=>{setRegionais(s=>s.includes(n)?s.filter(x=>x!==n):[...s,n]);setRep('')}}>{n}</button>)}</div></section>
 
@@ -87,28 +87,28 @@ export default function Entrada(){
 
  <section className="en-rep"><label>Representante<select value={rep} onChange={e=>setRep(e.target.value)}><option value="">Todos</option>{disponiveis.map(x=><option key={x.codigo} value={x.codigo}>{x.nome}</option>)}</select></label></section>
 
- <div className="en-summary"><div className="en-title">{titulo}</div><div className="en-parameter"><span>% PARÃ‚METRO MÃŠS</span><strong>{parametro?parametro.percentual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%':'â€”'}</strong><small>{parametro?`${parametro.decorridos} de ${parametro.uteis} dias Ãºteis (seg. a sex.)`:'Calculando dias Ãºteis...'}</small></div></div>
+ <div className="en-summary"><div className="en-title">{titulo}</div><div className="en-parameter"><span>% PARÂMETRO MÊS</span><strong>{parametro?parametro.percentual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%':'—'}</strong><small>{parametro?`${parametro.decorridos} de ${parametro.uteis} dias úteis (seg. a sex.)`:'Calculando dias úteis...'}</small></div></div>
 
- {erro&&<div className="en-error"><strong>NÃ£o foi possÃ­vel carregar os dados.</strong><pre>{erro}</pre></div>}
+ {erro&&<div className="en-error"><strong>Não foi possível carregar os dados.</strong><pre>{erro}</pre></div>}
 
  {!dados&&!erro&&<p>Carregando bases de Entrada...</p>}
 
- <div className="en-filterbar"><div className="en-mode"><button className={modo==='ambos'?'selected':''} onClick={()=>setModo('ambos')}>PARES E VALORES</button><button className={modo==='pares'?'selected':''} onClick={()=>setModo('pares')}>PARES</button><button className={modo==='valores'?'selected':''} onClick={()=>setModo('valores')}>VALORES (R$)</button></div><div className="en-weeks" aria-label="PerÃ­odo de entrada"><button className={semana===null?'active':''} onClick={()=>setSemana(null)}>MÃŠS COMPLETO</button>{Array.from({length:dados?.quantidadeSemanas??5},(_,i)=>i+1).map(n=><button key={n} className={semana===n?'active':''} onClick={()=>setSemana(n)} aria-pressed={semana===n}>{`SEMANA ${String(n).padStart(2,'0')}`}</button>)}</div></div>
+ <div className="en-filterbar"><div className="en-mode"><button className={modo==='ambos'?'selected':''} onClick={()=>setModo('ambos')}>PARES E VALORES</button><button className={modo==='pares'?'selected':''} onClick={()=>setModo('pares')}>PARES</button><button className={modo==='valores'?'selected':''} onClick={()=>setModo('valores')}>VALORES (R$)</button></div><div className="en-weeks" aria-label="Período de entrada"><button className={semana===null?'active':''} onClick={()=>setSemana(null)}>MÊS COMPLETO</button>{Array.from({length:dados?.quantidadeSemanas??5},(_,i)=>i+1).map(n=><button key={n} className={semana===n?'active':''} onClick={()=>setSemana(n)} aria-pressed={semana===n}>{`SEMANA ${String(n).padStart(2,'0')}`}</button>)}</div></div>
 
- {semana!==null&&<p className="en-week-notice" role="status">SEMANA {String(semana).padStart(2,'0')} ({semanaSelecionada?`${String(semanaSelecionada.inicio).padStart(2,'0')} a ${String(semanaSelecionada.fim).padStart(2,'0')}`:'perÃ­odo nÃ£o identificado'}): {!semanaSelecionada?'Aguardando dados do perÃ­odo.':!semanaSelecionada.metaDisponivel?'Meta indisponÃ­vel: falta uma ou mais abas das semanas anteriores.':!semanaSelecionada.disponivel?'Realizado indisponÃ­vel: a aba desta semana ainda nÃ£o existe.':'Meta redistribuÃ­da pelo saldo das semanas anteriores e realizado da semana selecionada.'}</p>}
+ {semana!==null&&<p className="en-week-notice" role="status">SEMANA {String(semana).padStart(2,'0')} ({semanaSelecionada?`${String(semanaSelecionada.inicio).padStart(2,'0')} a ${String(semanaSelecionada.fim).padStart(2,'0')}`:'período não identificado'}): {!semanaSelecionada?'Aguardando dados do período.':!semanaSelecionada.metaDisponivel?'Meta indisponível: falta uma ou mais abas das semanas anteriores.':!semanaSelecionada.disponivel?'Realizado indisponível: a aba desta semana ainda não existe.':'Meta redistribuída pelo saldo das semanas anteriores e realizado da semana selecionada.'}</p>}
 
- {(modo==='ambos'||modo==='pares')&&<div className="en-kpis">{card(semana===null?'METAS PARES MÃŠS':'META PARES SEMANA',inteiro(total.metaPares))}{card(semana===null?'REALIZADO PARES MÃŠS':'REALIZADO PARES SEMANA',inteiro(total.realPares))}{card(semana===null?'DIFERENÃ‡A PARES MÃŠS':'DIFERENÃ‡A PARES SEMANA',inteiro(total.realPares-total.metaPares),'pink')}{card('â–² % MÃŠS',pct(total.realPares,total.metaPares),'pink')}{semana===null&&<><div className="en-empty"/>{card('REALIZADO PARES MÃŠS ANTERIOR',inteiro(total.anteriorPares))}{card('DIFERENÃ‡A PARES MÃŠS ANTERIOR',inteiro(total.realPares-total.anteriorPares),'pink')}{card('â–² % MÃŠS ANTERIOR',pct(total.realPares,total.anteriorPares),'pink')}</>}</div>}
+ {(modo==='ambos'||modo==='pares')&&<div className="en-kpis">{card(semana===null?'METAS PARES MÊS':'META PARES SEMANA',inteiro(total.metaPares))}{card(semana===null?'REALIZADO PARES MÊS':'REALIZADO PARES SEMANA',inteiro(total.realPares))}{card(semana===null?'DIFERENÇA PARES MÊS':'DIFERENÇA PARES SEMANA',inteiro(total.realPares-total.metaPares),'pink')}{card('â–² % MÊS',pct(total.realPares,total.metaPares),'pink')}{semana===null&&<><div className="en-empty"/>{card('REALIZADO PARES MÊS ANTERIOR',inteiro(total.anteriorPares))}{card('DIFERENÇA PARES MÊS ANTERIOR',inteiro(total.realPares-total.anteriorPares),'pink')}{card('â–² % MÊS ANTERIOR',pct(total.realPares,total.anteriorPares),'pink')}</>}</div>}
 
- {(modo==='ambos'||modo==='valores')&&<div className="en-kpis">{card(semana===null?'METAS R$ MÃŠS':'META R$ SEMANA',moeda(total.metaValor))}{card(semana===null?'REALIZADO R$ MÃŠS':'REALIZADO R$ SEMANA',moeda(total.realValor))}{card(semana===null?'DIFERENÃ‡A R$ MÃŠS':'DIFERENÃ‡A R$ SEMANA',moeda(total.realValor-total.metaValor),'pink')}{card('â–² % MÃŠS',pct(total.realValor,total.metaValor),'pink')}{semana===null&&<><div className="en-empty"/>{card('REALIZADO R$ MÃŠS ANTERIOR',moeda(total.anteriorValor))}{card('DIFERENÃ‡A R$ MÃŠS ANTERIOR',moeda(total.realValor-total.anteriorValor),'pink')}{card('â–² % MÃŠS ANTERIOR',pct(total.realValor,total.anteriorValor),'pink')}</>}</div>}
+ {(modo==='ambos'||modo==='valores')&&<div className="en-kpis">{card(semana===null?'METAS R$ MÊS':'META R$ SEMANA',moeda(total.metaValor))}{card(semana===null?'REALIZADO R$ MÊS':'REALIZADO R$ SEMANA',moeda(total.realValor))}{card(semana===null?'DIFERENÇA R$ MÊS':'DIFERENÇA R$ SEMANA',moeda(total.realValor-total.metaValor),'pink')}{card('â–² % MÊS',pct(total.realValor,total.metaValor),'pink')}{semana===null&&<><div className="en-empty"/>{card('REALIZADO R$ MÊS ANTERIOR',moeda(total.anteriorValor))}{card('DIFERENÇA R$ MÊS ANTERIOR',moeda(total.realValor-total.anteriorValor),'pink')}{card('â–² % MÊS ANTERIOR',pct(total.realValor,total.anteriorValor),'pink')}</>}</div>}
 
  <div className="en-controls"><div><button className="open" onClick={()=>{setMostrarSupervisor(true);setMostrarRepresentante(true)}}>ABRIR DADOS</button><button className="close" onClick={()=>{setMostrarSupervisor(false);setMostrarRepresentante(false)}}>FECHAR DADOS</button></div><span>DETALHAMENTO POR SUPERVISOR E REPRESENTANTE</span></div>
 
  <div className="en-table-heading"><strong>DETALHAMENTO POR SUPERVISOR</strong><button type="button" aria-expanded={mostrarSupervisor} onClick={()=>setMostrarSupervisor(v=>!v)}>{mostrarSupervisor?'OCULTAR SUPERVISORES':'EXIBIR SUPERVISORES'}</button></div>
-  {mostrarSupervisor&&(dadosSemanaValidos?tabela('supervisor'):<p className="en-week-notice">Dados da semana ainda nÃ£o disponÃ­veis para esta tabela.</p>)}
+  {mostrarSupervisor&&(dadosSemanaValidos?tabela('supervisor'):<p className="en-week-notice">Dados da semana ainda não disponíveis para esta tabela.</p>)}
   <div className="en-table-heading"><strong>DETALHAMENTO POR REPRESENTANTE</strong><button type="button" aria-expanded={mostrarRepresentante} onClick={()=>setMostrarRepresentante(v=>!v)}>{mostrarRepresentante?'OCULTAR REPRESENTANTES':'EXIBIR REPRESENTANTES'}</button></div>
-  {mostrarRepresentante&&(dadosSemanaValidos?tabela('representante'):<p className="en-week-notice">Dados da semana ainda nÃ£o disponÃ­veis para esta tabela.</p>)}
+  {mostrarRepresentante&&(dadosSemanaValidos?tabela('representante'):<p className="en-week-notice">Dados da semana ainda não disponíveis para esta tabela.</p>)}
 
- <p className="en-foot">Fonte: {dados?.periodo||'â€”'} Â· Metas: {dados?.metasValidas??'â€”'} registros Â· Entrada: {dados?.vendasValidas??'â€”'} registros. CÃ¡lculos aguardando validaÃ§Ã£o contra o PBIX.</p>
+ <p className="en-foot">Fonte: {dados?.periodo||'—'} · Metas: {dados?.metasValidas??'—'} registros · Entrada: {dados?.vendasValidas??'—'} registros. Cálculos aguardando validação contra o PBIX.</p>
 
  {dados?.avisos?.map((a,i)=><p className="en-foot" key={i}>{a}</p>)}
 
