@@ -9,13 +9,26 @@ type Api={periodo:string;semanas:Semana[];avisos:string[];erro?:string};
 const fmt=(n:number)=>n.toLocaleString('pt-BR',{maximumFractionDigits:0});
 const pct=(m:number,r:number)=>m?(r/m*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%':'—';
 const cell:React.CSSProperties={border:'1px solid #cbd5e1',padding:'10px 12px'};
+
+// Defesa adicional: a exibicao nunca mistura linhas entre segmentos.
+const normalizarRegional=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+const regionaisNacionais=new Set(['CEO','REM','NORTE / NORDESTE','NORTE/NORDESTE','SUL','SPC','SPI']);
+const regionaisRN=new Set(['RN - SP/SUL','RN - NORTE/NORDESTE','RN - CEO/REM']);
+function pertenceAoSegmento(l:Linha,segmento:Secao){
+ const reg=normalizarRegional(l.regional);
+ const rep=String(l.representante||'').trim();
+ if(segmento==='NACIONAL')return l.secao==='NACIONAL'&&regionaisNacionais.has(reg);
+ if(segmento==='RN')return l.secao==='RN'&&regionaisRN.has(reg);
+ return l.secao==='B2B'&&(['264','273','296','334'].some(id=>rep===id||rep.startsWith(id+'-')||rep.startsWith(id+' '))||['264','273','296','334'].some(id=>reg===id||reg.startsWith(id+'-')));
+}
+
 export default function EntradaSemanal(){
  const [dados,setDados]=useState<Api|null>(null),[semana,setSemana]=useState(1),[segmento,setSegmento]=useState<Secao>('NACIONAL'),[erro,setErro]=useState('');
  useEffect(()=>{fetch('/api/entrada-semanal',{cache:'no-store'}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.erro||'Falha ao carregar');setDados(j)}).catch(e=>setErro(e instanceof Error?e.message:String(e)))},[]);
  const atual=dados?.semanas.find(s=>s.numero===semana)||dados?.semanas[0];
  function tabela(titulo:string,tipo:'GERAL'|Tipo){
   const agrupados=new Map<string,Linha>();
-  for(const l of atual?.linhas||[]){if(l.secao!==segmento||(tipo!=='GERAL'&&l.tipo!==tipo))continue;const key=segmento==='B2B'?(l.representante||l.regional):l.regional;const prev=agrupados.get(key);if(prev){prev.meta+=l.meta;prev.realizado+=l.realizado}else agrupados.set(key,{...l})}
+  for(const l of atual?.linhas||[]){if(!pertenceAoSegmento(l,segmento)||(tipo!=='GERAL'&&l.tipo!==tipo))continue;const key=segmento==='B2B'?(l.representante||l.regional):l.regional;const prev=agrupados.get(key);if(prev){prev.meta+=l.meta;prev.realizado+=l.realizado}else agrupados.set(key,{...l})}
   const linhas=[...agrupados.values()].sort((a,b)=>(segmento==='B2B'?(a.representante||''):(a.regional)).localeCompare(segmento==='B2B'?(b.representante||''):b.regional,'pt-BR'));
   const meta=linhas.reduce((s,l)=>s+l.meta,0),realizado=linhas.reduce((s,l)=>s+l.realizado,0);
   function linha(l:Linha,isTotal=false){return <tr key={l.regional} style={{fontWeight:isTotal?800:400,background:isTotal?'#eef2f7':'white'}}><td style={cell}>{segmento==='B2B'?(l.representante||l.regional):l.regional}</td><td style={cell}>{l.gerente}</td><td style={{...cell,textAlign:'right'}}>{fmt(l.meta)}</td><td style={{...cell,textAlign:'right'}}>{fmt(l.realizado)}</td><td style={{...cell,textAlign:'right',background:l.realizado<l.meta?'#fee2e2':'#dcfce7'}}>{fmt(l.realizado-l.meta)}</td><td style={{...cell,textAlign:'right',background:l.realizado<l.meta?'#fee2e2':'#dcfce7'}}>{pct(l.meta,l.realizado)}</td></tr>}
@@ -33,7 +46,7 @@ export default function EntradaSemanal(){
   const larguras=[53,43,45,51,40,43];
   const linhasDaTabela=(secao:Secao,tipo:'GERAL'|Tipo)=>{
    const mapa=new Map<string,Linha>();
-   for(const l of semanaAtual.linhas){if(l.secao!==secao||(tipo!=='GERAL'&&l.tipo!==tipo))continue;
+   for(const l of semanaAtual.linhas){if(!pertenceAoSegmento(l,secao)||(tipo!=='GERAL'&&l.tipo!==tipo))continue;
     const chave=secao==='B2B'?(l.representante||l.regional):l.regional;const anterior=mapa.get(chave);
     if(anterior){anterior.meta+=l.meta;anterior.realizado+=l.realizado;}
     else mapa.set(chave,{...l});
