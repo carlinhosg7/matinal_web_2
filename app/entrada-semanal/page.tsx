@@ -8,6 +8,7 @@ type Semana={numero:number;inicio:number;fim:number;linhas:Linha[]};
 type Api={periodo:string;semanas:Semana[];avisos:string[];erro?:string};
 const fmt=(n:number)=>n.toLocaleString('pt-BR',{maximumFractionDigits:0});
 const pct=(m:number,r:number)=>m?(r/m*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%':'—';
+const VERSAO_TELA='SEGMENTOS-20261014-02';
 const cell:React.CSSProperties={border:'1px solid #cbd5e1',padding:'10px 12px'};
 
 // Defesa adicional: a exibicao nunca mistura linhas entre segmentos.
@@ -17,9 +18,9 @@ const regionaisRN=new Set(['RN - SP/SUL','RN - NORTE/NORDESTE','RN - CEO/REM']);
 function pertenceAoSegmento(l:Linha,segmento:Secao){
  const reg=normalizarRegional(l.regional);
  const rep=String(l.representante||'').trim();
- if(segmento==='NACIONAL')return l.secao==='NACIONAL'&&regionaisNacionais.has(reg);
- if(segmento==='RN')return l.secao==='RN'&&regionaisRN.has(reg);
- return l.secao==='B2B'&&(['264','273','296','334'].some(id=>rep===id||rep.startsWith(id+'-')||rep.startsWith(id+' '))||['264','273','296','334'].some(id=>reg===id||reg.startsWith(id+'-')));
+ if(segmento==='NACIONAL')return regionaisNacionais.has(reg)&&!/^\d{3}[- ]/.test(reg);
+ if(segmento==='RN')return regionaisRN.has(reg);
+ return (['264','273','296','334'].some(id=>rep===id||rep.startsWith(id+'-')||rep.startsWith(id+' '))||['264','273','296','334'].some(id=>reg===id||reg.startsWith(id+'-')));
 }
 
 export default function EntradaSemanal(){
@@ -121,5 +122,5 @@ export default function EntradaSemanal(){
   pdf.save('KIDY_Entrada_Semanal_Semana_'+semanaAtual.numero+'_'+dadosAtuais.periodo.replace(/\W/g,'-')+'.pdf');
  }
  const botao=(ativo:boolean):React.CSSProperties=>({padding:'11px 20px',border:0,borderRadius:7,cursor:'pointer',background:ativo?'#f97316':'#dbe2ed',color:ativo?'white':'#1f2937',fontWeight:700});
- return <main style={{background:'#f4f6f9',minHeight:'100vh',padding:'28px 18px',fontFamily:'Arial,sans-serif'}}><div style={{maxWidth:1150,margin:'auto'}}><Link href="/portal">← Voltar ao portal</Link><header style={{display:'flex',alignItems:'center',gap:22,margin:'22px 0'}}><img src="/kidy-logo.png" alt="KIDY" style={{width:110}}/><div><h1 style={{color:'#f97316',margin:0}}>ENTRADA SEMANAL</h1><strong>{dados?.periodo||'Carregando período...'}</strong></div></header><div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:18}}>{(['NACIONAL','RN','B2B'] as Secao[]).map(s=><button key={s} onClick={()=>setSegmento(s)} style={botao(segmento===s)}>{s==='NACIONAL'?'Nacional':s}</button>)}</div>{erro&&<p role="alert" style={{color:'#b91c1c'}}>{erro}</p>}<div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:24}}>{dados?.semanas.map(s=><button key={s.numero} onClick={()=>setSemana(s.numero)} style={botao(semana===s.numero)}>Semana {s.numero}</button>)}{atual&&<button onClick={gerarPdf} style={{...botao(false),background:'#1f4676',color:'#fff',marginLeft:'auto'}}>📄 Gerar PDF (3 páginas)</button>}</div>{atual&&<><p style={{fontWeight:700}}>PERÍODO: {String(atual.inicio).padStart(2,'0')} A {String(atual.fim).padStart(2,'0')} / {dados?.periodo}</p>{tabela('GERAL','GERAL')}{tabela('PRODUÇÃO — PEDIDO NORMAL','PRODUCAO')}{tabela('PRONTA ENTREGA — KIDEX','KIDEX')}</>}{dados?.avisos?.map((a,i)=><p key={i} style={{fontSize:12,color:'#64748b'}}>{a}</p>)}</div></main>;
+ return <main style={{background:'#f4f6f9',minHeight:'100vh',padding:'28px 18px',fontFamily:'Arial,sans-serif'}}><div style={{maxWidth:1150,margin:'auto'}}><Link href="/portal">← Voltar ao portal</Link><header style={{display:'flex',alignItems:'center',gap:22,margin:'22px 0'}}><img src="/kidy-logo.png" alt="KIDY" style={{width:110}}/><div><h1 style={{color:'#f97316',margin:0}}>ENTRADA SEMANAL</h1><strong>{dados?.periodo||'Carregando período...'}</strong><small style={{display:'block',fontSize:10,color:'#64748b'}}>Versão: {VERSAO_TELA}</small></div></header><div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:18}}>{(['NACIONAL','RN','B2B'] as Secao[]).map(s=><button key={s} onClick={()=>setSegmento(s)} style={botao(segmento===s)}>{s==='NACIONAL'?'Nacional':s}</button>)}</div>{erro&&<p role="alert" style={{color:'#b91c1c'}}>{erro}</p>}<div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:24}}>{dados?.semanas.map(s=><button key={s.numero} onClick={()=>setSemana(s.numero)} style={botao(semana===s.numero)}>Semana {s.numero}</button>)}{atual&&<button onClick={gerarPdf} style={{...botao(false),background:'#1f4676',color:'#fff',marginLeft:'auto'}}>📄 Gerar PDF (3 páginas)</button>}</div>{atual&&<div key={segmento+'-'+semana}><p style={{fontWeight:700}}>PERÍODO: {String(atual.inicio).padStart(2,'0')} A {String(atual.fim).padStart(2,'0')} / {dados?.periodo}</p>{tabela('GERAL','GERAL')}{tabela('PRODUÇÃO — PEDIDO NORMAL','PRODUCAO')}{tabela('PRONTA ENTREGA — KIDEX','KIDEX')}</div>}{dados?.avisos?.map((a,i)=><p key={i} style={{fontSize:12,color:'#64748b'}}>{a}</p>)}</div></main>;
 }

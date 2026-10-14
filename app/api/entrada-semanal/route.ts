@@ -65,5 +65,5 @@ export async function GET(){try{
  const selecionados=[...grupos.values()].filter(autorizado);
  const semanas=Array.from({length:quantidade},(_,i)=>({numero:i+1,inicio:i*7+1,fim:Math.min((i+1)*7,ultimo),linhas:selecionados.map(g=>{const anteriores=g.semanas.slice(0,i).reduce((a,b)=>a+b,0);return {secao:g.secao,regional:g.regional,gerente:g.gerente,representante:g.representante,tipo:g.tipo,meta:(g.metaMensal-anteriores)/(quantidade-i),realizado:g.semanas[i]}}).sort((a,b)=>a.secao.localeCompare(b.secao)||a.regional.localeCompare(b.regional)||a.tipo.localeCompare(b.tipo))}));
  const avisos:string[]=[];if(semRegional)avisos.push(`${semRegional} linhas de meta sem regional correspondente no CAD_REPRESENTANTE.`);if(semClassificacao)avisos.push(`${semClassificacao} linhas de vendas com tipo de pedido não reconhecido.`);
- return NextResponse.json({periodo:`${String(mes+1).padStart(2,'0')}/${ano}`,semanas,avisos});
+ return NextResponse.json({versao:'SEGMENTOS-20261014-02',periodo:`${String(mes+1).padStart(2,'0')}/${ano}`,semanas,avisos},{headers:{'Cache-Control':'private, no-store, max-age=0','X-Matinal-Versao':'SEGMENTOS-20261014-02'}});
  }catch(e){return NextResponse.json({erro:e instanceof Error?e.message:String(e)},{status:500})}}
