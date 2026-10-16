@@ -1,5 +1,2 @@
-CORRECAO - SEMANAS DE DOMINGO A SABADO
-
-Extraia para D:\matinal-web, preservando as pastas e substituindo os arquivos.
-Semanas de outubro/2026: 01-03; 04-10; 11-17; 18-24; 25-31.
-Depois execute npm run build e publique no GitHub.
+Corrigido fechamento JSX indevido antes do rodape. A tela Clientes permanece apenas como consulta; demais telas preservadas.
+Extraia na raiz D:\matinal-web, faca backup e execute npm run build.

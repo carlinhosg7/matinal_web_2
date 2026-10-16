@@ -1,0 +1,73 @@
+﻿import 'server-only';
+import {abrirDrive} from './drive-source';
+import * as XLSX from 'xlsx';
+
+const names = {
+  entrada:'Dash Export Entrada.xlsx',
+  faturamento:'Dash Export Faturamento.xlsx',
+  metas:'BASE01.xlsx',
+  carteira:'CONTROLE DE VENDAS POR FATURAMENTO  EXPORT.xlsx'
+} as const;
+type R=Record<string,unknown>;
+const normal=(v:unknown)=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'').toUpperCase();
+const asNum=(v:unknown)=>{if(typeof v==='number')return Number.isFinite(v)?v:0;const s=String(v??'').trim();const n=Number(s.includes(',')?s.replace(/\./g,'').replace(',','.'):s);return Number.isFinite(n)?n:0};
+const field=(r:R,...keys:string[])=>{for(const k of keys){const v=r[normal(k)];if(v!==undefined&&v!==null&&String(v).trim()!=='')return v}return undefined};
+const txt=(v:unknown)=>String(v??'').trim();
+const mkDate=(v:unknown):Date|null=>{
+  if(v instanceof Date)return new Date(Date.UTC(v.getFullYear(),v.getMonth(),v.getDate()));
+  if(typeof v==='number'){const d=new Date(Date.UTC(1899,11,30)+Math.floor(v)*86400000);return isNaN(d.getTime())?null:d;}
+  const s=txt(v);const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  const d=m?new Date(Date.UTC(+m[3],+m[2]-1,+m[1])):new Date(s);return isNaN(d.getTime())?null:d;
+};
+const iso=(d:Date)=>d.toISOString().slice(0,10);
+const monthNames=['JANEIRO','FEVEREIRO','MARCO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+const month=(v:unknown)=>monthNames.indexOf(normal(v));
+
+async function workbook(nome:string):Promise<XLSX.WorkBook>{
+  return abrirDrive(nome);
+}
+function sheet(w:XLSX.WorkBook,name:string,headerIndex:number):R[]{
+  const sheetName=w.SheetNames.find(s=>normal(s)===normal(name));if(!sheetName)throw Error(`Aba ${name} ausente`);
+  const matrix=XLSX.utils.sheet_to_json<unknown[]>(w.Sheets[sheetName],{header:1,defval:'',raw:true});
+  const headers=(matrix[headerIndex]||[]).map(normal);
+  return matrix.slice(headerIndex+1).filter(row=>row.some(v=>v!==''&&v!==null)).map(row=>Object.fromEntries(headers.map((h,i)=>[h,row[i]]).filter(([h])=>Boolean(h))));
+}
+type Item={data:string;pais:string;cliente:string;pedido:string;pares:number;valor:number};
+function items(rows:R[], dateField:string, quantityField:string,amountField:string):Item[]{return rows.map(r=>{
+ const d=mkDate(field(r,dateField));return {data:d?iso(d):'',pais:normal(field(r,'Pais')),cliente:txt(field(r,'Razao Social')),pedido:txt(field(r,'Numero Pedido')),pares:asNum(field(r,quantityField)),valor:asNum(field(r,amountField))};
+}).filter(r=>r.data);}
+const sum=(a:Item[])=>({pares:a.reduce((s,i)=>s+i.pares,0),valor:a.reduce((s,i)=>s+i.valor,0),pedidos:new Set(a.map(r=>r.pedido).filter(Boolean)).size,clientes:new Set(a.map(r=>r.cliente).filter(Boolean)).size});
+function agrupamento(a:Item[],by:(r:Item)=>string){const map=new Map<string,Item[]>();for(const r of a){const key=by(r)||'NÃƒO INFORMADO';const old=map.get(key)||[];old.push(r);map.set(key,old)}return [...map.entries()].map(([nome,rows])=>({nome,...sum(rows)})).sort((a,b)=>b.valor-a.valor)}
+const sunday=(date:Date)=>{const d=new Date(date);d.setUTCDate(d.getUTCDate()-d.getUTCDay());return d};
+const saturday=(d:Date)=>{const next=new Date(d);next.setUTCDate(next.getUTCDate()+6);return next};
+const atMonth=(d:Date,y:number,m:number)=>d.getUTCFullYear()===y&&d.getUTCMonth()===m;
+function metas(rows:R[],y:number,m:number){return rows.filter(r=>month(field(r,'MÃªs'))===m).map(r=>({pais:normal(field(r,'pais')),metaPares:asNum(field(r,'Meta Entrada Pares','Meta Faturamento Pares')),realizadoPares:asNum(field(r,'Realizado Pares Entrada','Realizado Pares Fatutamento')),metaValor:asNum(field(r,'Meta Valores Entrada','Meta Valores Faturamento')),realizadoValor:asNum(field(r,'Realizado Valores entrada','Realizado Valores Faturamento'))}));}
+export async function exportData(tela:string,requestedYear?:number,requestedMonth?:number,requestedCountry?:string){
+ const allowed=['entrada','faturamento','clientes','fechamento-semanal'];if(!allowed.includes(tela))throw Error('Tela invÃ¡lida');
+ const [entW,fatW,baseW,cartW]=await Promise.all([workbook(names.entrada),workbook(names.faturamento),workbook(names.metas),workbook(names.carteira)]);
+ const entrada=items(sheet(entW,'entrada dia',2),'Data Cadastro','Qtd Venda','Vlr Venda');
+ const faturamento=items(sheet(fatW,'fat por dia',2),'Data Emissao','Quantidade','Vlr Faturado');
+ const carteira=items(sheet(cartW,'CONTROLE DE VENDAS POR FATURAM',2),'Data Entrega','Qtd Venda','Vlr Venda');
+ const paisRows=sheet(baseW,'PAIS',0);
+ const gerentes=Object.fromEntries(paisRows.map(r=>[normal(field(r,'PAIS')),txt(field(r,'GERENTE'))]));
+ const dates=[...entrada,...faturamento].map(r=>r.data).sort();const latest=dates.at(-1)||iso(new Date());
+ const active=new Date(latest+'T00:00:00Z');const year=requestedYear&&requestedYear>=2020&&requestedYear<=2100?requestedYear:active.getUTCFullYear();
+ const monthIndex=requestedMonth!==undefined&&requestedMonth>=1&&requestedMonth<=12?requestedMonth-1:active.getUTCMonth();
+ const paises=[...new Set([...entrada,...faturamento,...carteira].map(r=>r.pais).filter(Boolean))].sort();
+ const country=normal(requestedCountry||'');
+ const filter=(rows:Item[])=>rows.filter(r=>{const d=new Date(r.data+'T00:00:00Z');return atMonth(d,year,monthIndex)&&(!country||r.pais===country)});
+ const e=filter(entrada),f=filter(faturamento),c=filter(carteira);
+ const metasEntrada=metas(sheet(baseW,'METAS DE ENTRADA',0),year,monthIndex).filter(r=>!country||r.pais===country);
+ const metasFaturamento=metas(sheet(baseW,'METAS DE FATURAMENTO',0),year,monthIndex).filter(r=>!country||r.pais===country);
+ const metasSum=(a:typeof metasEntrada)=>({pares:a.reduce((s,x)=>s+x.metaPares,0),valor:a.reduce((s,x)=>s+x.metaValor,0)});
+ const byCountry=agrupamento(tela==='faturamento'?f:e,r=>r.pais).map(x=>({...x,gerente:gerentes[x.nome]||'â€”'}));
+ const base=tela==='faturamento'?f:e;const totals=sum(base);const targets=metasSum(tela==='faturamento'?metasFaturamento:metasEntrada);
+ const bounds:{inicio:string;fim:string;entrada:ReturnType<typeof sum>;faturamento:ReturnType<typeof sum>;carteira:ReturnType<typeof sum>}[]=[];
+ let cur=sunday(new Date(Date.UTC(year,monthIndex,1)));const last=new Date(Date.UTC(year,monthIndex+1,0));
+ while(cur<=last){const end=saturday(cur);const startLimit=new Date(Math.max(cur.getTime(),Date.UTC(year,monthIndex,1)));const endLimit=new Date(Math.min(end.getTime(),last.getTime()));
+ const inside=(a:Item[])=>a.filter(x=>x.data>=iso(startLimit)&&x.data<=iso(endLimit));
+ bounds.push({inicio:iso(startLimit),fim:iso(endLimit),entrada:sum(inside(e)),faturamento:sum(inside(f)),carteira:sum(inside(c))});cur=new Date(cur.getTime()+7*86400000);}
+ const clientes=agrupamento([...e,...f],r=>r.cliente).slice(0,250);
+ return {tela,ano:year,mes:monthIndex+1,paises,selecionado:country,atualizadoReferencia:latest,totais:totals,meta:targets,entrada:sum(e),faturamento:sum(f),carteira:sum(c),porPais:byCountry,porCliente:clientes,porDia:agrupamento(base,r=>r.data).sort((a,b)=>a.nome.localeCompare(b.nome)),semanas:bounds,avisos:['Metas conforme BASE01.xlsx; a aba de metas nÃ£o possui coluna de ano.','Clientes agrupados por RazÃ£o Social, pois nÃ£o hÃ¡ identificador Ãºnico nas abas diÃ¡rias.']};
+}
+

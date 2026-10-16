@@ -1,0 +1,82 @@
+import 'server-only';
+import * as XLSX from 'xlsx';
+
+const MAX_BYTES = 12_000_000;
+const MAX_JSON_CHARS = 17_000_000;
+const norm = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+const allowed = new Set([
+ 'CAD_REPRESENTANTE.xlsx','COBERTURA DE CARTEIRA 503 564.xlsx',
+ 'INDICADORES COMERCIAIS POR  FATURAMENTO.xlsx','MATINAL COMERIAL  RN.xlsx',
+ 'MATINAL COMERIAL.xlsx','MATINAL.xlsx','META BRINQUEDOS VER26.xlsx',
+ 'META BRINQUEDOS.xlsx','META CLIENTES NOVOS.xlsx','META DE ENTRADA DO MES.xlsx',
+ 'META DE FATURAMENTO DO MES.xlsx','META ENTRADA C KIDEX.xlsx',
+ 'META FATRAMENTO 187K.xlsx','META PROJETOS ESPECIAIS.xlsx','META SURPRESA.xlsx',
+ 'METAS - LUZES-PRIM_KIDY - K360.xlsx','METAS REBECA BONBON POR REP.xlsx',
+ 'TORRE 02.xlsx','TORRE.xlsx','VEN_META_REP_MENSAL_TIPO_PEDIDO - Entrega Pedido - 01-07-2026 - MAIOR.xlsx',
+ 'Venda por RepresentanteMarca.xlsx','Dash Export Entrada.xlsx','Dash Export Faturamento.xlsx','BASE01.xlsx','CONTROLE DE VENDAS POR FATURAMENTO  EXPORT.xlsx','PLANEJAMENTO EXPORTAÇÃO 2027.xlsx','VENDA SEMANA.xlsx'
+]);
+const catalog = [...allowed];
+export function encontrarDrive(nomes: string[]): string {
+ const found = catalog.find(f => nomes.some(n => norm(n.replace(/\.xlsx$/i,'')) === norm(f.replace(/\.xlsx$/i,''))));
+ if (!found) throw new Error(`Planilha nÃ£o cadastrada no Drive: ${nomes.join(' / ')}`);
+ return found;
+}
+// Cache em memoria por instancia serverless: 15 minutos, ate 3 planilhas.
+// Requisicoes simultaneas compartilham o mesmo download.
+const TTL_MS = 1 * 60 * 1000;
+const MAX_ENTRIES = 3;
+type CacheEntry = { workbook: XLSX.WorkBook; expires: number };
+const workbookCache = new Map<string, CacheEntry>();
+const pending = new Map<string, Promise<XLSX.WorkBook>>();
+
+export async function abrirDrive(nome: string): Promise<XLSX.WorkBook> {
+ if (!allowed.has(nome)) throw new Error(`Arquivo nao permitido: ${nome}`);
+ const now = Date.now();
+ for (const [key, entry] of workbookCache) {
+  if (entry.expires <= now) workbookCache.delete(key);
+ }
+ const hit = workbookCache.get(nome);
+ if (hit) {
+  workbookCache.delete(nome);
+  workbookCache.set(nome, hit);
+  return hit.workbook;
+ }
+ const ongoing = pending.get(nome);
+ if (ongoing) return ongoing;
+ const task = baixarEProcessar(nome).then(workbook => {
+  workbookCache.set(nome, { workbook, expires: Date.now() + TTL_MS });
+  while (workbookCache.size > MAX_ENTRIES) {
+   const oldest = workbookCache.keys().next().value;
+   if (oldest === undefined) break;
+   workbookCache.delete(oldest);
+  }
+  return workbook;
+ }).finally(() => { pending.delete(nome); });
+ pending.set(nome, task);
+ return task;
+}
+
+async function baixarEProcessar(nome: string): Promise<XLSX.WorkBook> {
+ if (!allowed.has(nome)) throw new Error(`Arquivo nÃ£o permitido: ${nome}`);
+ const script = process.env.GOOGLE_APPS_SCRIPT_URL;
+ const token = process.env.GOOGLE_APPS_SCRIPT_TOKEN;
+ if (!script || !token) throw new Error('Configure GOOGLE_APPS_SCRIPT_URL e GOOGLE_APPS_SCRIPT_TOKEN na Vercel');
+ const url = new URL(script);
+ if (url.protocol !== 'https:' || url.hostname !== 'script.google.com') throw new Error('URL Apps Script invÃ¡lida');
+ url.searchParams.set('acao','arquivo');url.searchParams.set('nome',nome);url.searchParams.set('token',token);
+ const response = await fetch(url.toString(), {cache:'no-store',redirect:'follow',signal:AbortSignal.timeout(60000)});
+ if (!response.ok) throw new Error(`Apps Script HTTP ${response.status} para ${nome}`);
+ const size = Number(response.headers.get('content-length')||0);
+ if (size > MAX_JSON_CHARS) throw new Error(`Resposta do Apps Script grande demais: ${nome}`);
+ const raw = await response.text();
+ if (raw.length > MAX_JSON_CHARS) throw new Error(`Resposta do Apps Script grande demais: ${nome}`);
+ let data: {sucesso?:boolean;erro?:string;nome?:string;tamanho?:number;conteudoBase64?:string};
+ try {data = JSON.parse(raw)} catch {throw new Error(`Apps Script nÃ£o retornou JSON vÃ¡lido: ${nome}`)}
+ if (!data.sucesso || !data.conteudoBase64) throw new Error(`Apps Script: ${data.erro||'Arquivo indisponÃ­vel'} (${nome})`);
+ if (data.nome!==nome || !data.tamanho || data.tamanho>MAX_BYTES) throw new Error(`Arquivo inesperado ou grande demais: ${nome}`);
+ if (data.conteudoBase64.length>16_000_000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(data.conteudoBase64)) throw new Error(`Base64 invÃ¡lido: ${nome}`);
+ const bytes=Buffer.from(data.conteudoBase64,'base64');
+ if(bytes.length!==data.tamanho)throw new Error(`Arquivo incompleto: ${nome}`);
+ return XLSX.read(bytes,{type:'buffer',cellDates:true});
+}
+

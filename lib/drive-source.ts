@@ -13,12 +13,12 @@ const allowed = new Set([
  'META FATRAMENTO 187K.xlsx','META PROJETOS ESPECIAIS.xlsx','META SURPRESA.xlsx',
  'METAS - LUZES-PRIM_KIDY - K360.xlsx','METAS REBECA BONBON POR REP.xlsx',
  'TORRE 02.xlsx','TORRE.xlsx','VEN_META_REP_MENSAL_TIPO_PEDIDO - Entrega Pedido - 01-07-2026 - MAIOR.xlsx',
- 'Venda por RepresentanteMarca.xlsx','VENDA SEMANA.xlsx'
+ 'Venda por RepresentanteMarca.xlsx','Dash Export Entrada.xlsx','Dash Export Faturamento.xlsx','BASE01.xlsx','CONTROLE DE VENDAS POR FATURAMENTO  EXPORT.xlsx','PLANEJAMENTO EXPORTAÇÃO 2027.xlsx','VENDA SEMANA.xlsx'
 ]);
 const catalog = [...allowed];
 export function encontrarDrive(nomes: string[]): string {
  const found = catalog.find(f => nomes.some(n => norm(n.replace(/\.xlsx$/i,'')) === norm(f.replace(/\.xlsx$/i,''))));
- if (!found) throw new Error(`Planilha não cadastrada no Drive: ${nomes.join(' / ')}`);
+ if (!found) throw new Error(`Planilha nÃ£o cadastrada no Drive: ${nomes.join(' / ')}`);
  return found;
 }
 // Cache em memoria por instancia serverless: 15 minutos, ate 3 planilhas.
@@ -57,25 +57,60 @@ export async function abrirDrive(nome: string): Promise<XLSX.WorkBook> {
 }
 
 async function baixarEProcessar(nome: string): Promise<XLSX.WorkBook> {
- if (!allowed.has(nome)) throw new Error(`Arquivo não permitido: ${nome}`);
+ if (!allowed.has(nome)) throw new Error(`Arquivo nÃ£o permitido: ${nome}`);
  const script = process.env.GOOGLE_APPS_SCRIPT_URL;
  const token = process.env.GOOGLE_APPS_SCRIPT_TOKEN;
  if (!script || !token) throw new Error('Configure GOOGLE_APPS_SCRIPT_URL e GOOGLE_APPS_SCRIPT_TOKEN na Vercel');
  const url = new URL(script);
- if (url.protocol !== 'https:' || url.hostname !== 'script.google.com') throw new Error('URL Apps Script inválida');
+ if (url.protocol !== 'https:' || url.hostname !== 'script.google.com') throw new Error('URL Apps Script invÃ¡lida');
  url.searchParams.set('acao','arquivo');url.searchParams.set('nome',nome);url.searchParams.set('token',token);
- const response = await fetch(url.toString(), {cache:'no-store',redirect:'follow',signal:AbortSignal.timeout(60000)});
- if (!response.ok) throw new Error(`Apps Script HTTP ${response.status} para ${nome}`);
+ let response: Response | undefined;
+
+ for (let tentativa = 1; tentativa <= 3; tentativa++) {
+   try {
+     response = await fetch(url.toString(), {
+       cache: 'no-store',
+       redirect: 'follow',
+       signal: AbortSignal.timeout(60000)
+     });
+
+     if (response.ok) break;
+
+     if (![404, 429, 500, 502, 503, 504].includes(response.status)) {
+       throw new Error(`Apps Script HTTP ${response.status} para ${nome}`);
+     }
+
+     if (tentativa === 3) {
+       throw new Error(`Apps Script HTTP ${response.status} para ${nome}`);
+     }
+
+   } catch (erro) {
+     if (tentativa === 3) throw erro;
+
+     console.warn(
+       `[Drive] Tentativa ${tentativa} falhou para ${nome}`
+     );
+   }
+
+   await new Promise(resolve =>
+     setTimeout(resolve, tentativa * 1500)
+   );
+ }
+
+ if (!response || !response.ok) {
+   throw new Error(`Falha ao baixar ${nome}`);
+ }
  const size = Number(response.headers.get('content-length')||0);
  if (size > MAX_JSON_CHARS) throw new Error(`Resposta do Apps Script grande demais: ${nome}`);
  const raw = await response.text();
  if (raw.length > MAX_JSON_CHARS) throw new Error(`Resposta do Apps Script grande demais: ${nome}`);
  let data: {sucesso?:boolean;erro?:string;nome?:string;tamanho?:number;conteudoBase64?:string};
- try {data = JSON.parse(raw)} catch {throw new Error(`Apps Script não retornou JSON válido: ${nome}`)}
- if (!data.sucesso || !data.conteudoBase64) throw new Error(`Apps Script: ${data.erro||'Arquivo indisponível'} (${nome})`);
+ try {data = JSON.parse(raw)} catch {throw new Error(`Apps Script nÃ£o retornou JSON vÃ¡lido: ${nome}`)}
+ if (!data.sucesso || !data.conteudoBase64) throw new Error(`Apps Script: ${data.erro||'Arquivo indisponÃ­vel'} (${nome})`);
  if (data.nome!==nome || !data.tamanho || data.tamanho>MAX_BYTES) throw new Error(`Arquivo inesperado ou grande demais: ${nome}`);
- if (data.conteudoBase64.length>16_000_000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(data.conteudoBase64)) throw new Error(`Base64 inválido: ${nome}`);
+ if (data.conteudoBase64.length>16_000_000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(data.conteudoBase64)) throw new Error(`Base64 invÃ¡lido: ${nome}`);
  const bytes=Buffer.from(data.conteudoBase64,'base64');
  if(bytes.length!==data.tamanho)throw new Error(`Arquivo incompleto: ${nome}`);
  return XLSX.read(bytes,{type:'buffer',cellDates:true});
 }
+

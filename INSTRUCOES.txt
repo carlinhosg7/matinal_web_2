@@ -1,13 +1,13 @@
-MATINAL WEB - CORREÇÃO DO VISUAL E NAVEGAÇÃO
+MÓDULO PLANEJAMENTO EXPORTAÇÃO 2027
 
-1) Faça backup de D:\matinal-web.
-2) Copie a pasta app/entrada e a pasta components deste pacote para D:\matinal-web, mesclando pastas. Não apague outros arquivos.
-3) Copie app/cobertura, app/projetos-especiais e app/brinquedos apenas se essas rotas ainda não existirem. Não sobrescreva páginas prontas.
-4) Para ativar a navegação na página de FATURAMENTO, edite app/faturamento/page.tsx:
-   importe: import MatinalNav from '../../components/MatinalNav';
-   e insira <MatinalNav /> no JSX onde hoje aparece a barra de navegação. Remova somente a barra antiga para não duplicar.
-5) Caso exista um cabeçalho compartilhado (app/layout.tsx ou componente Header), é melhor colocar MatinalNav nele uma única vez, retirando a barra das páginas individuais.
-6) Reinicie o Next.js: npm run dev -- -H 0.0.0.0 -p 3001
-7) Teste /faturamento, /entrada, /cobertura, /projetos-especiais e /brinquedos.
+1. Faça backup do projeto D:\matinal-web.
+2. Copie as pastas app e lib sobre D:\matinal-web (apenas os arquivos deste pacote).
+3. No Google Apps Script, adicione "PLANEJAMENTO EXPORTAÇÃO 2027.xlsx" a ARQUIVOS_PERMITIDOS e publique uma NOVA VERSÃO da implantação existente.
+4. Em D:\matinal-web\lib\drive-source.ts, adicione 'PLANEJAMENTO EXPORTAÇÃO 2027.xlsx', dentro do Set allowed (sem apagar as demais entradas).
+5. Certifique-se de que ambas as planilhas estejam na pasta Dados Matinal.
+6. Execute npm run build e depois npm run dev.
+7. Acesse /export/planejamento.
 
-OBS: A entrada.css é independente do Tailwind. Os números da página Entrada são demonstrativos.
+IMPORTANTE: Mês Cadastro = mês de entrada. Mês Entrega = faturamento previsto, não faturamento efetivo.
+2026 na planilha Meta 2027 contém apenas janeiro a setembro.
+Estimativa sazonal não é ML treinado.

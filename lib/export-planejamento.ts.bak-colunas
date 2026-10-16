@@ -1,0 +1,63 @@
+import 'server-only';
+import * as XLSX from 'xlsx';
+import {abrirDrive} from './drive-source';
+type Lin = unknown[];
+const norm=(v:unknown)=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'').toUpperCase();
+const num=(v:unknown)=>typeof v==='number'&&Number.isFinite(v)?v:Number(String(v??'0').replace(',','.'))||0;
+const nome=(v:unknown)=>String(v??'').trim();
+const monthKey=(v:unknown)=>{const m=String(v??'').trim().match(/^(\d{1,2})\/(\d{4})$/);return m?`${m[2]}-${m[1].padStart(2,'0')}`:null};
+function sheet(w:XLSX.WorkBook,name:string):Lin[]{const n=w.SheetNames.find(x=>norm(x)===norm(name));if(!n)throw Error(`Aba nao encontrada: ${name}`);return XLSX.utils.sheet_to_json<Lin>(w.Sheets[n],{header:1,defval:null,raw:true});}
+const round=(n:number)=>Math.round((n+Number.EPSILON)*100)/100;
+type Pair={pares:number;valor:number};
+const zero=():Pair=>({pares:0,valor:0});
+const add=(x:Pair,p:number,v:number)=>{x.pares+=p;x.valor+=v};
+export async function carregarPlanejamento(){
+ // Os dois workbooks sao os unicos downloads; abrirDrive compartilha o cache existente.
+ const plan=await abrirDrive('PLANEJAMENTO EXPORTAÇÃO 2027.xlsx');
+ const ent=await abrirDrive('Dash Export Entrada.xlsx');
+ const metasRows=sheet(plan,'Meta 2027');
+ const mHeader=(metasRows[0]||[]).map(norm);
+ const ix=(key:string)=>mHeader.findIndex(x=>x===norm(key));
+ const cPais=ix('Pais'),cMetaP=ix('META PARES 2027'),cMetaV=ix('META FATURAMENTO 2027');
+ const c25P=ix('Pares 2025'),c25V=ix('Fat. 2025');
+ const c26P=ix('Pares 2026 (janâ€“set)'),c26V=ix('Fat. 2026 (janâ€“set)');
+ if([cPais,cMetaP,cMetaV,c25P,c25V,c26P,c26V].some(x=>x<0))throw Error('Colunas esperadas nao encontradas em Meta 2027');
+ const metas=metasRows.slice(1).filter(r=>nome(r[cPais])&&!norm(r[cPais]).startsWith('TOTAL')).map(r=>({pais:nome(r[cPais]),id:norm(r[cPais]),pares2025:num(r[c25P]),valor2025:num(r[c25V]),pares2026JanSet:num(r[c26P]),valor2026JanSet:num(r[c26V]),metaPares: num(r[cMetaP]),metaValor:num(r[cMetaV])})).filter(r=>r.metaPares||r.metaValor||r.pares2025||r.pares2026JanSet);
+ const totalMeta=metas.reduce((a,r)=>{add(a,r.metaPares,r.metaValor);return a},zero());
+ const metasDetalhe=metas.map(r=>({...r,participacaoPares:totalMeta.pares?r.metaPares/totalMeta.pares*100:null,participacaoValor:totalMeta.valor?r.metaValor/totalMeta.valor*100:null,variacaoPares:r.pares2025?(r.pares2026JanSet/r.pares2025-1)*100:null,variacaoValor:r.valor2025?(r.valor2026JanSet/r.valor2025-1)*100:null}));
+ // Uma comparacao YTD x ano fechado nao e homogenea: explicitamente marcada como parcial.
+ const matrix=sheet(ent,'ENTRADA X FATURAMENTO');
+ const entregaHeader=matrix[2]||[], fields=matrix[3]||[];
+ const series=new Map<string,{pais:string;cliente:string;entrada:string;entrega:string;pares:number;valor:number}>();
+ const allMonths=new Set<string>();
+ for(let i=4;i<fields.length-1;i+=2){const k=monthKey(entregaHeader[i]);if(k)allMonths.add(k)}
+ for(const r of matrix.slice(4)){
+  const pais=nome(r[2]),cliente=nome(r[1]),entrada=monthKey(r[3]);if(!pais||!entrada)continue;
+  for(let c=4;c<fields.length-1;c+=2){
+   const entrega=monthKey(entregaHeader[c]);if(!entrega)continue;
+   const pares=num(r[c]),valor=num(r[c+1]);if(!pares&&!valor)continue;
+   const key=[norm(pais),norm(cliente),entrada,entrega].join('|');
+   const prev=series.get(key)||{pais,cliente,entrada,entrega,pares:0,valor:0};
+   prev.pares+=pares;prev.valor+=valor;series.set(key,prev);
+  }
+ }
+ const cruzamento=[...series.values()].map(r=>({...r,pares:round(r.pares),valor:round(r.valor)}));
+ // Previsao inicial orientada pela sazonalidade de entrada (mes de cadastro) e pela meta 2027.
+ // Isto nao e um modelo ML treinado; sera evoluido e validado conforme houver historico granular.
+ const historico=new Map<string,number[]>();
+ for(const r of cruzamento){if(!['2025','2026'].includes(r.entrada.slice(0,4)))continue;const key=norm(r.pais);const a=historico.get(key)||Array(12).fill(0);a[Number(r.entrada.slice(5,7))-1]+=Math.max(0,r.pares);historico.set(key,a)}
+ const previsao=metas.map(r=>{
+  const v=historico.get(r.id)||Array(12).fill(0);
+  // Um pseudo-contador por mes impede previsao zero em paises pouco amostrados.
+  const soma=v.reduce((a,b)=>a+b,0);
+  const mensal=v.map((x,i)=>({mes:i+1,peso:(x+(soma?Math.max(1,soma*0.01):1))/(soma+(soma?Math.max(1,soma*0.01):1)*12)}));
+  let paresAc=0,valorAc=0;
+  return {pais:r.pais,metodo:soma?'Distribuicao sazonal 2025-26':'Distribuicao uniforme (sem historico)',meses:mensal.map((m,i)=>{
+   const pares=i===11?r.metaPares-paresAc:Math.round(r.metaPares*m.peso);
+   const valor=i===11?r.metaValor-valorAc:round(r.metaValor*m.peso);
+   paresAc+=pares;valorAc+=valor;
+   return {mes:m.mes,pares,valor:round(valor),participacao:round(m.peso*100)};
+  })};
+ });
+ return {geradoEm:new Date().toISOString(),metas:metasDetalhe,totalMeta,cruzamento,previsao,periodosEntrega:[...allMonths].sort(),avisos:['2026 na Meta 2027 contempla somente janeiro a setembro; nao comparar como ano completo.','Mes Cadastro = entrada; Mes Entrega = faturamento previsto (nao nota emitida).','Predicao e uma estimativa sazonal inicial que distribui a meta de 2027; nao e um modelo ML validado.']};
+}
