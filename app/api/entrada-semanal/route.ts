@@ -56,10 +56,10 @@ export async function GET(){try{
  const mapa=new Map<string,string>();const nomes=new Map<string,string>();for(const r of cadastro){const id=idRep(campo(r,'Codigo Representante','Codigo Rep','COD_REP'));const regional=str(campo(r,'Supervisor'));const nome=str(campo(r,'Nome Rep','Nome Representante','Representante','Nome'));if(id&&regional)mapa.set(id,regional);if(id&&nome)nomes.set(id,nome)}
  const datas=venda.map(r=>data(campo(r,'Data Cadastro'))).filter(d=>!isNaN(d.getTime()));if(!datas.length)throw Error('VENDA SEMANA sem datas válidas');
  const maisRecente=datas.reduce((a,b)=>a>b?a:b);const ano=maisRecente.getUTCFullYear(),mes=maisRecente.getUTCMonth();
- // Semanas de segunda a domingo, limitadas ao mes selecionado.
+ // Semanas de domingo a sabado, limitadas ao mes selecionado.
  const ultimo=new Date(Date.UTC(ano,mes+1,0)).getUTCDate();
  const diaPrimeiro=new Date(Date.UTC(ano,mes,1)).getUTCDay();
- const fimPrimeiraSemana=1+((7-diaPrimeiro)%7);
+ const fimPrimeiraSemana=1+((6-diaPrimeiro+7)%7);
  const periodos:{inicio:number;fim:number}[]=[];
  for(let inicio=1;inicio<=ultimo;){
   const fim=Math.min(ultimo,inicio===1?fimPrimeiraSemana:inicio+6);
@@ -75,5 +75,5 @@ export async function GET(){try{
  const selecionados=[...grupos.values()].filter(autorizado);
  const semanas=Array.from({length:quantidade},(_,i)=>({numero:i+1,inicio:periodos[i].inicio,fim:periodos[i].fim,linhas:selecionados.map(g=>{const anteriores=g.semanas.slice(0,i).reduce((a,b)=>a+b,0);return {secao:g.secao,regional:g.regional,gerente:g.gerente,representante:g.representante,tipo:g.tipo,meta:(g.metaMensal-anteriores)/(quantidade-i),realizado:g.semanas[i]}}).sort((a,b)=>a.secao.localeCompare(b.secao)||a.regional.localeCompare(b.regional)||a.tipo.localeCompare(b.tipo))}));
  const avisos:string[]=[];if(semRegional)avisos.push(`${semRegional} linhas de meta sem regional correspondente no CAD_REPRESENTANTE.`);if(semClassificacao)avisos.push(`${semClassificacao} linhas de vendas com tipo de pedido não reconhecido.`);
- return NextResponse.json({versao:'SEGMENTOS-20261016-SEMANAS',periodo:`${String(mes+1).padStart(2,'0')}/${ano}`,semanas,avisos},{headers:{'Cache-Control':'private, no-store, max-age=0','X-Matinal-Versao':'SEGMENTOS-20261016-SEMANAS'}});
+ return NextResponse.json({versao:'SEGMENTOS-20261016-DOM-SAB',periodo:`${String(mes+1).padStart(2,'0')}/${ano}`,semanas,avisos},{headers:{'Cache-Control':'private, no-store, max-age=0','X-Matinal-Versao':'SEGMENTOS-20261016-DOM-SAB'}});
  }catch(e){return NextResponse.json({erro:e instanceof Error?e.message:String(e)},{status:500})}}

@@ -1,1 +1,5 @@
-Correção Matinal Web: semanas segunda-domingo (mês limitado), abertura na semana atual e cache Drive de 1 minuto. Extraia na raiz D:\matinal-web substituindo os 3 arquivos. Faça backup e teste npm run build antes de publicar.
+CORRECAO - SEMANAS DE DOMINGO A SABADO
+
+Extraia para D:\matinal-web, preservando as pastas e substituindo os arquivos.
+Semanas de outubro/2026: 01-03; 04-10; 11-17; 18-24; 25-31.
+Depois execute npm run build e publique no GitHub.
