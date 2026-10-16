@@ -56,14 +56,24 @@ export async function GET(){try{
  const mapa=new Map<string,string>();const nomes=new Map<string,string>();for(const r of cadastro){const id=idRep(campo(r,'Codigo Representante','Codigo Rep','COD_REP'));const regional=str(campo(r,'Supervisor'));const nome=str(campo(r,'Nome Rep','Nome Representante','Representante','Nome'));if(id&&regional)mapa.set(id,regional);if(id&&nome)nomes.set(id,nome)}
  const datas=venda.map(r=>data(campo(r,'Data Cadastro'))).filter(d=>!isNaN(d.getTime()));if(!datas.length)throw Error('VENDA SEMANA sem datas válidas');
  const maisRecente=datas.reduce((a,b)=>a>b?a:b);const ano=maisRecente.getUTCFullYear(),mes=maisRecente.getUTCMonth();
- const ultimo=new Date(Date.UTC(ano,mes+1,0)).getUTCDate();const quantidade=Math.ceil(ultimo/7);
+ // Semanas de segunda a domingo, limitadas ao mes selecionado.
+ const ultimo=new Date(Date.UTC(ano,mes+1,0)).getUTCDate();
+ const diaPrimeiro=new Date(Date.UTC(ano,mes,1)).getUTCDay();
+ const fimPrimeiraSemana=1+((7-diaPrimeiro)%7);
+ const periodos:{inicio:number;fim:number}[]=[];
+ for(let inicio=1;inicio<=ultimo;){
+  const fim=Math.min(ultimo,inicio===1?fimPrimeiraSemana:inicio+6);
+  periodos.push({inicio,fim});
+  inicio=fim+1;
+ }
+ const quantidade=periodos.length;
  const grupos=new Map<string,Grupo>();const obter=(regional:string,tipo:Tipo,id='')=>{const c=classificarRep(regional,id);if(!c)return null;const representante=c.secao==='B2B'?(nomes.get(id)||id||'SEM REPRESENTANTE'):undefined;const chave=[c.secao,norm(c.regional),tipo,c.secao==='B2B'?id:''].join('|');let g=grupos.get(chave);if(!g){g={...c,representante,tipo,metaMensal:0,semanas:Array(quantidade).fill(0)};grupos.set(chave,g)}return g};
  let semClassificacao=0,semRegional=0;
  for(const r of metas){const t=tipoMeta(campo(r,'ID_TIPO_PEDIDO'));if(!t)continue;const id=idRep(campo(r,'CODIGO_REP'));const reg=mapa.get(id);if(!reg){semRegional++;continue}const dm=data(campo(r,'DATA_META'));if(!isNaN(dm.getTime())&&(dm.getUTCMonth()!==mes||dm.getUTCFullYear()!==ano))continue;const grupo=obter(reg,t,id);if(grupo)grupo.metaMensal+=numero(campo(r,'META_QUANTIDADE'))}
- for(const r of venda){const d=data(campo(r,'Data Cadastro'));if(isNaN(d.getTime())||d.getUTCFullYear()!==ano||d.getUTCMonth()!==mes)continue;const t=tipoVenda(campo(r,'Tipo Pedido'));if(!t){semClassificacao++;continue}const id=idRep(campo(r,'Codigo Representante'));const reg=str(campo(r,'Supervisor'))||mapa.get(id)||'SEM REGIONAL';const semana=Math.min(quantidade-1,Math.floor((d.getUTCDate()-1)/7));const grupo=obter(reg,t,id);if(grupo)grupo.semanas[semana]+=numero(campo(r,'Qtd Venda'))}
+ for(const r of venda){const d=data(campo(r,'Data Cadastro'));if(isNaN(d.getTime())||d.getUTCFullYear()!==ano||d.getUTCMonth()!==mes)continue;const t=tipoVenda(campo(r,'Tipo Pedido'));if(!t){semClassificacao++;continue}const id=idRep(campo(r,'Codigo Representante'));const reg=str(campo(r,'Supervisor'))||mapa.get(id)||'SEM REGIONAL';const semana=periodos.findIndex(p=>d.getUTCDate()>=p.inicio&&d.getUTCDate()<=p.fim);if(semana<0)continue;const grupo=obter(reg,t,id);if(grupo)grupo.semanas[semana]+=numero(campo(r,'Qtd Venda'))}
  const autorizado=(g:Grupo)=>{if(total)return true;if(g.secao==='B2B')return false;if(g.secao==='RN'){const n=norm(g.regional);const cods=n.includes('NORTE')?['9914']:n.includes('CEO')?['9902','9915']:['9907','9916','9917'];return cods.some(c=>codigos.includes(c))}return permitidos.has(norm(g.regional))};
  const selecionados=[...grupos.values()].filter(autorizado);
- const semanas=Array.from({length:quantidade},(_,i)=>({numero:i+1,inicio:i*7+1,fim:Math.min((i+1)*7,ultimo),linhas:selecionados.map(g=>{const anteriores=g.semanas.slice(0,i).reduce((a,b)=>a+b,0);return {secao:g.secao,regional:g.regional,gerente:g.gerente,representante:g.representante,tipo:g.tipo,meta:(g.metaMensal-anteriores)/(quantidade-i),realizado:g.semanas[i]}}).sort((a,b)=>a.secao.localeCompare(b.secao)||a.regional.localeCompare(b.regional)||a.tipo.localeCompare(b.tipo))}));
+ const semanas=Array.from({length:quantidade},(_,i)=>({numero:i+1,inicio:periodos[i].inicio,fim:periodos[i].fim,linhas:selecionados.map(g=>{const anteriores=g.semanas.slice(0,i).reduce((a,b)=>a+b,0);return {secao:g.secao,regional:g.regional,gerente:g.gerente,representante:g.representante,tipo:g.tipo,meta:(g.metaMensal-anteriores)/(quantidade-i),realizado:g.semanas[i]}}).sort((a,b)=>a.secao.localeCompare(b.secao)||a.regional.localeCompare(b.regional)||a.tipo.localeCompare(b.tipo))}));
  const avisos:string[]=[];if(semRegional)avisos.push(`${semRegional} linhas de meta sem regional correspondente no CAD_REPRESENTANTE.`);if(semClassificacao)avisos.push(`${semClassificacao} linhas de vendas com tipo de pedido não reconhecido.`);
- return NextResponse.json({versao:'SEGMENTOS-20261014-02',periodo:`${String(mes+1).padStart(2,'0')}/${ano}`,semanas,avisos},{headers:{'Cache-Control':'private, no-store, max-age=0','X-Matinal-Versao':'SEGMENTOS-20261014-02'}});
+ return NextResponse.json({versao:'SEGMENTOS-20261016-SEMANAS',periodo:`${String(mes+1).padStart(2,'0')}/${ano}`,semanas,avisos},{headers:{'Cache-Control':'private, no-store, max-age=0','X-Matinal-Versao':'SEGMENTOS-20261016-SEMANAS'}});
  }catch(e){return NextResponse.json({erro:e instanceof Error?e.message:String(e)},{status:500})}}

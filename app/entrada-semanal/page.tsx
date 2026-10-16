@@ -8,7 +8,7 @@ type Semana={numero:number;inicio:number;fim:number;linhas:Linha[]};
 type Api={periodo:string;semanas:Semana[];avisos:string[];erro?:string};
 const fmt=(n:number)=>n.toLocaleString('pt-BR',{maximumFractionDigits:0});
 const pct=(m:number,r:number)=>m?(r/m*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%':'—';
-const VERSAO_TELA='SEGMENTOS-20261014-02';
+const VERSAO_TELA='SEGMENTOS-20261016-SEMANAS';
 const cell:React.CSSProperties={border:'1px solid #cbd5e1',padding:'10px 12px'};
 
 // Defesa adicional: a exibicao nunca mistura linhas entre segmentos.
@@ -25,7 +25,13 @@ function pertenceAoSegmento(l:Linha,segmento:Secao){
 
 export default function EntradaSemanal(){
  const [dados,setDados]=useState<Api|null>(null),[semana,setSemana]=useState(1),[segmento,setSegmento]=useState<Secao>('NACIONAL'),[erro,setErro]=useState('');
- useEffect(()=>{fetch('/api/entrada-semanal',{cache:'no-store'}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.erro||'Falha ao carregar');setDados(j)}).catch(e=>setErro(e instanceof Error?e.message:String(e)))},[]);
+ useEffect(()=>{fetch('/api/entrada-semanal',{cache:'no-store'}).then(async r=>{const j:Api=await r.json();if(!r.ok)throw Error(j.erro||'Falha ao carregar');setDados(j);
+  // Ao abrir, seleciona a semana do dia de hoje, quando estiver no mes exibido.
+  const agora=new Date();
+  const periodoAtual=`${String(agora.getMonth()+1).padStart(2,'0')}/${agora.getFullYear()}`;
+  const selecionada=j.periodo===periodoAtual?j.semanas.find(s=>agora.getDate()>=s.inicio&&agora.getDate()<=s.fim):undefined;
+  setSemana(selecionada?.numero??1);
+ }).catch(e=>setErro(e instanceof Error?e.message:String(e)))},[]);
  const atual=dados?.semanas.find(s=>s.numero===semana)||dados?.semanas[0];
  function tabela(titulo:string,tipo:'GERAL'|Tipo){
   const agrupados=new Map<string,Linha>();

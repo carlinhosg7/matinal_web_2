@@ -1,1 +1,1 @@
-Atualização do Resumo Comercial: metas, realizados, diferenças e percentuais de pares e valores, na tela e no PDF. Mantém as seções dos projetos e logos. Extrair em D:\matinal-web. Dados de cobertura em R$ não se aplicam. Verificar números nas APIs e PBIX.
+Correção Matinal Web: semanas segunda-domingo (mês limitado), abertura na semana atual e cache Drive de 1 minuto. Extraia na raiz D:\matinal-web substituindo os 3 arquivos. Faça backup e teste npm run build antes de publicar.

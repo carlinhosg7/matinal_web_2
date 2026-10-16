@@ -23,7 +23,7 @@ export function encontrarDrive(nomes: string[]): string {
 }
 // Cache em memoria por instancia serverless: 15 minutos, ate 3 planilhas.
 // Requisicoes simultaneas compartilham o mesmo download.
-const TTL_MS = 15 * 60 * 1000;
+const TTL_MS = 1 * 60 * 1000;
 const MAX_ENTRIES = 3;
 type CacheEntry = { workbook: XLSX.WorkBook; expires: number };
 const workbookCache = new Map<string, CacheEntry>();
