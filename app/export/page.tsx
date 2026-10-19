@@ -11,6 +11,7 @@ const telas = [
   {titulo:'Clientes', rota:'/export/clientes', descricao:'Desempenho de clientes e países', icone:'♙'},
   {titulo:'Fechamento Semanal', rota:'/export/fechamento-semanal', descricao:'Resumo comercial do mês', icone:'▦'},
   {titulo:'Planejamento', rota:'/export/planejamento', descricao:'Planejamento comercial da Exportação', icone:'◎', novo:true},
+  {titulo:'Preditivo 2027', rota:'/export/preditivo', descricao:'Projecoes por pais para 2027', icone:'P', novo:true},
 ];
 
 export default async function Export() {
@@ -36,7 +37,7 @@ export default async function Export() {
         </header>
 
         <section aria-labelledby="exp-menu-title">
-          <div className="exp-title-row"><div><h2 id="exp-menu-title">Áreas de análise</h2><p>Escolha o módulo que deseja acompanhar.</p></div><span className="exp-count">5 módulos</span></div>
+          <div className="exp-title-row"><div><h2 id="exp-menu-title">Áreas de análise</h2><p>Escolha o módulo que deseja acompanhar.</p></div><span className="exp-count">6 módulos</span></div>
           <div className="exp-grid">
             {telas.map((t,i)=>(
               <Link key={t.rota} className={'exp-card'+(t.novo?' exp-new':'')} href={t.rota}>
