@@ -1,5 +1,5 @@
 import {NextResponse} from 'next/server';
-import {usuarioAtual} from '../../../../lib/matinal-auth';
+import {usuarioAtual,podeAcessar} from '../../../../lib/matinal-auth';
 import {exportData} from '../../../../lib/export-data';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -8,7 +8,7 @@ export async function GET(request:Request,{params}:{params:Promise<{tela:string}
   const user=await usuarioAtual();
   if(!user)return NextResponse.json({erro:'Não autenticado'},{status:401});
   // Permissões de Exportação devem ser parametrizadas antes de liberar perfis não administrativos.
-  if((user.perfil!=='ADMINISTRADOR' && user.email.trim().toLowerCase()!=='andreia.cristina@kidy.com.br'))return NextResponse.json({erro:'Acesso Exportação ainda não configurado para este perfil'},{status:403});
+  if((!podeAcessar(user,'export')))return NextResponse.json({erro:'Acesso Exportação ainda não configurado para este perfil'},{status:403});
   const {tela}=await params;const u=new URL(request.url);
   const numeros=(plural:string,singular:string)=>{
    const raw=u.searchParams.get(plural)||u.searchParams.get(singular)||'';

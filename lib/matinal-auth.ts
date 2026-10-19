@@ -3,9 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export const TELAS = ['faturamento','entrada','cobertura','projetos-especiais','brinquedos'] as const;
+export const TELAS = ['faturamento','entrada','cobertura','projetos-especiais','brinquedos','export'] as const;
 export type Tela = (typeof TELAS)[number];
-export type Perfil = 'ADMINISTRADOR'|'GERENTE'|'SUPERVISOR';
+export type Perfil = 'ADMINISTRADOR'|'GERENTE'|'SUPERVISOR'|'EXPORTACAO';
 export type Usuario = {id:string;nome:string;email:string;perfil:Perfil;ativo:boolean;supervisor_codigo:string|null;telas:Tela[]};
 const url=()=>{const v=process.env.NEXT_PUBLIC_SUPABASE_URL;if(!v)throw Error('Configure NEXT_PUBLIC_SUPABASE_URL');return v};
 const anon=()=>{const v=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;if(!v)throw Error('Configure NEXT_PUBLIC_SUPABASE_ANON_KEY');return v};

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import {redirect} from 'next/navigation';
-import {usuarioAtual} from '../../lib/matinal-auth';
+import {usuarioAtual,podeAcessar} from '../../lib/matinal-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +16,7 @@ const telas = [
 export default async function Export() {
   const user = await usuarioAtual();
   if (!user) redirect('/login');
-  if ((user.perfil!=='ADMINISTRADOR' && user.email.trim().toLowerCase()!=='andreia.cristina@kidy.com.br')) {
+  if ((!podeAcessar(user,'export'))) {
     return <main style={{padding:30,fontFamily:'Arial,sans-serif'}}>Exportação ainda não habilitada para este perfil. <Link href="/portal">Voltar ao portal</Link></main>;
   }
   return (
