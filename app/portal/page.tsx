@@ -30,7 +30,7 @@ export default async function Portal() {
         </header>
         <h2 style={{ margin: '32px 0 18px', fontSize: 21, color: '#1f2937' }}>Menu de acesso</h2>
         <nav style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 16 }}>
-          {modulos.map(m => <Link key={m.rota} href={m.rota} style={{ background: '#ff6900', color: '#fff', padding: '28px 22px', minHeight: 95, borderRadius: 12, textDecoration: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8, boxShadow: '0 6px 15px #ff69001a' }}><strong style={{ fontSize: 19 }}>{m.nome}</strong><span style={{ fontSize: 13, opacity: .9 }}>{m.detalhe}</span></Link>)}
+          {modulos.filter(m => usuario.perfil !== 'EXPORTACAO' || m.rota === '/export').map(m => <Link key={m.rota} href={m.rota} style={{ background: '#ff6900', color: '#fff', padding: '28px 22px', minHeight: 95, borderRadius: 12, textDecoration: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8, boxShadow: '0 6px 15px #ff69001a' }}><strong style={{ fontSize: 19 }}>{m.nome}</strong><span style={{ fontSize: 13, opacity: .9 }}>{m.detalhe}</span></Link>)}
           {usuario.perfil === 'ADMINISTRADOR' && <Link href="/admin/usuarios" style={{ background: '#30343b', color: '#fff', padding: '28px 22px', minHeight: 95, borderRadius: 12, textDecoration: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8 }}><strong style={{ fontSize: 19 }}>Cadastro de Usuários</strong><span style={{ fontSize: 13, opacity: .9 }}>Acessos e permissões</span></Link>}
         </nav>
       </div>

@@ -1,6 +1,6 @@
 import {abrirDrive,encontrarDrive} from '../../../lib/drive-source';
 import {NextResponse} from 'next/server';
-import {usuarioAtual,adminDb} from '../../../lib/matinal-auth';
+import {usuarioAtual,adminDb,podeAcessar} from '../../../lib/matinal-auth';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as XLSX from 'xlsx';
@@ -44,7 +44,9 @@ function tipoVenda(v:unknown):Tipo|null{const n=norm(v);return n==='PEDIDONORMAL
 function tipoMeta(v:unknown):Tipo|null{return str(v)==='1'?'PRODUCAO':str(v)==='4'?'KIDEX':null}
 export async function GET(){try{
  const user=await usuarioAtual();if(!user)return NextResponse.json({erro:'Não autenticado'},{status:401});
- const db=adminDb();const {data:cfg,error:cfgError}=await db.from('matinal_carga_usuarios').select('acesso_total,regionais').ilike('email',user.email).maybeSingle();
+ if(!podeAcessar(user,'entrada'))
+   return NextResponse.json({erro:'Acesso negado'},{status:403});
+  const db=adminDb();const {data:cfg,error:cfgError}=await db.from('matinal_carga_usuarios').select('acesso_total,regionais').ilike('email',user.email).maybeSingle();
  if(user.perfil!=='ADMINISTRADOR'&&(cfgError||!cfg))return NextResponse.json({erro:'Permissões regionais não configuradas'},{status:403});
  const total=user.perfil==='ADMINISTRADOR'||cfg?.acesso_total===true;
  const codigos=(cfg?.regionais||[]) as string[];
