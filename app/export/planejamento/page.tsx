@@ -15,9 +15,25 @@ const section:React.CSSProperties={background:'#fff',padding:22,borderRadius:14,
 export default function Planejamento(){
  const [tab,setTab]=useState('metas');const [dados,setDados]=useState<Payload|null>(null);const [erro,setErro]=useState('');const [pais,setPais]=useState('');const [carregando,setCarregando]=useState(true);
  useEffect(()=>{let ok=true;fetch('/api/export/planejamento',{cache:'no-store'}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.erro||`HTTP ${r.status}`);return j as Payload}).then(j=>{if(ok)setDados(j)}).catch(e=>{if(ok)setErro(String(e.message))}).finally(()=>{if(ok)setCarregando(false)});return()=>{ok=false}},[]);
+ const [mesFiltro,setMesFiltro]=useState(0);
  const metas=useMemo(()=>dados?.metas.filter(r=>!pais||r.id===pais)||[],[dados,pais]);
  const cruz=useMemo(()=>dados?.cruzamento.filter(r=>!pais||r.pais.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'').toUpperCase()===pais)||[],[dados,pais]);
  const prev=useMemo(()=>dados?.previsao.filter(r=>!pais||r.pais.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'').toUpperCase()===pais)||[],[dados,pais]);
+ const linhasPrevisao=useMemo(
+  ()=>prev.flatMap(r=>r.meses
+   .filter(m=>mesFiltro===0||m.mes===mesFiltro)
+   .map(m=>({pais:r.pais,metodo:r.metodo,...m}))),
+  [prev,mesFiltro]
+ );
+ const totaisPrevisao=useMemo(()=>{
+  const pares=linhasPrevisao.reduce((s,r)=>s+r.pares,0);
+  const valor=linhasPrevisao.reduce((s,r)=>s+r.valor,0);
+  const paresAnuais=prev.reduce(
+   (s,r)=>s+r.meses.reduce((a,m)=>a+m.pares,0),0
+  );
+  const peso=paresAnuais>0?pares/paresAnuais*100:null;
+  return {pares,valor,peso};
+ },[linhasPrevisao,prev]);
  const crescimento=metas.filter(r=>r.variacaoPares!==null||r.variacaoValor!==null).sort((a,b)=>(b.variacaoValor||0)-(a.variacaoValor||0));
  const T=({children}:{children:React.ReactNode})=><div style={{overflowX:'auto',maxHeight:620}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>{children}</table></div>;
  return <main style={{minHeight:'100vh',background:'#f2f5fa',fontFamily:'Arial, sans-serif',color:'#19334f',padding:'25px 3%'}}><div style={{maxWidth:1500,margin:'0 auto'}}>
@@ -29,7 +45,54 @@ export default function Planejamento(){
  {tab==='metas'&&<section style={section}><h2>Metas por país — 2027</h2><p>Participação na meta geral em pares e valores.</p><div style={{display:'flex',gap:16,flexWrap:'wrap',marginBottom:18}}><b>Meta total em pares: {count(dados.totalMeta.pares)}</b><b>Meta total em valores: {money(dados.totalMeta.valor)}</b></div><T><thead><tr>{['País','Meta pares','Meta valores','% pares total','% valores total'].map((x,i)=><th key={x} style={{...th,textAlign:i===0?'left':'right'}}>{x}</th>)}</tr></thead><tbody>{metas.map(r=><tr key={r.id}><td style={{...td,textAlign:'left'}}>{r.pais}</td><td style={td}>{count(r.metaPares)}</td><td style={td}>{money(r.metaValor)}</td><td style={td}>{percent(r.participacaoPares)}</td><td style={td}>{percent(r.participacaoValor)}</td></tr>)}</tbody></T></section>}
  {tab==='evolucao'&&<section style={section}><h2>Mercados em alta e queda</h2><p>Comparação disponível: 2025 completo × janeiro–setembro de 2026. O percentual ainda não é uma variação anual equivalente.</p><T><thead><tr>{['País','Pares 2025','Pares 2026 jan–set','Var. pares*','Valor 2025','Valor 2026 jan–set','Var. valores*'].map((x,i)=><th key={x} style={{...th,textAlign:i===0?'left':'right'}}>{x}</th>)}</tr></thead><tbody>{crescimento.map(r=><tr key={r.id}><td style={{...td,textAlign:'left'}}>{r.pais}</td><td style={td}>{count(r.pares2025)}</td><td style={td}>{count(r.pares2026JanSet)}</td><td style={{...td,color:(r.variacaoPares||0)<0?'#b91c1c':'#15803d'}}>{percent(r.variacaoPares)}</td><td style={td}>{money(r.valor2025)}</td><td style={td}>{money(r.valor2026JanSet)}</td><td style={{...td,color:(r.variacaoValor||0)<0?'#b91c1c':'#15803d'}}>{percent(r.variacaoValor)}</td></tr>)}</tbody></T><small>*Variação parcial 2026 Jan–Set em relação ao total 2025, sem anualização.</small></section>}
  {tab==='fluxo'&&<section style={section}><h2>Entrada × Faturamento previsto</h2><p>Mês Cadastro = entrada do pedido. Mês Entrega = faturamento previsto. Valores por país e cliente.</p><T><thead><tr>{['País','Cliente','Mês Entrada','Mês Faturamento previsto','Pares','Valores'].map((x,i)=><th key={x} style={{...th,textAlign:i<2?'left':'right'}}>{x}</th>)}</tr></thead><tbody>{cruz.slice(0,1000).map((r,i)=><tr key={i}><td style={{...td,textAlign:'left'}}>{r.pais}</td><td style={{...td,textAlign:'left'}}>{r.cliente}</td><td style={td}>{r.entrada.slice(5,7)}/{r.entrada.slice(0,4)}</td><td style={td}>{r.entrega.slice(5,7)}/{r.entrega.slice(0,4)}</td><td style={td}>{count(r.pares)}</td><td style={td}>{money(r.valor)}</td></tr>)}</tbody></T>{cruz.length>1000&&<small>Exibindo as primeiras 1.000 combinações. Use o filtro País para refinar.</small>}</section>}
- {tab==='previsao'&&<section style={section}><h2>Estimativa de entrada de pedidos — 2027</h2><p>Distribuição mensal da meta 2027 conforme sazonalidade das entradas em 2025–2026. Projeção inicial, ainda não é modelo de ML validado.</p><T><thead><tr>{['País','Mês','Pares previstos','Valor previsto','Peso sazonal','Método'].map((x,i)=><th key={x} style={{...th,textAlign:i===0||i===5?'left':'right'}}>{x}</th>)}</tr></thead><tbody>{prev.flatMap(r=>r.meses.map(m=><tr key={r.pais+m.mes}><td style={{...td,textAlign:'left'}}>{r.pais}</td><td style={td}>{meses[m.mes-1]}/2027</td><td style={td}>{count(m.pares)}</td><td style={td}>{money(m.valor)}</td><td style={td}>{percent(m.participacao)}</td><td style={{...td,textAlign:'left'}}>{r.metodo}</td></tr>))}</tbody></T></section>}
+ {tab==='previsao'&&
+ <section style={section}>
+  <h2>Estimativa de entrada de pedidos — 2027</h2>
+  <p>Distribuição mensal da meta 2027 conforme sazonalidade das entradas em 2025–2026. Projeção inicial, ainda não é modelo de ML validado.</p>
+
+  <div style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap',marginBottom:18}}>
+   <label htmlFor="filtro-mes-2027" style={{fontWeight:700}}>Filtrar mês:</label>
+   <select
+    id="filtro-mes-2027"
+    value={mesFiltro}
+    onChange={e=>setMesFiltro(Number(e.target.value))}
+    style={{padding:11,minWidth:200,borderRadius:9,border:'1px solid #cad3df',background:'#fff',color:'#19334f'}}
+   >
+    <option value={0}>Todos os meses</option>
+    {meses.map((m,i)=><option key={i} value={i+1}>{m}/2027</option>)}
+   </select>
+  </div>
+
+  <T>
+   <thead>
+    <tr>
+     {['País','Mês','Pares previstos','Valor previsto','Peso sazonal','Método'].map((x,i)=>
+      <th key={x} style={{...th,textAlign:i===0||i===5?'left':'right'}}>{x}</th>
+     )}
+    </tr>
+   </thead>
+   <tbody>
+    {linhasPrevisao.map((r,i)=>
+     <tr key={`${r.pais}-${r.mes}-${i}`}>
+      <td style={{...td,textAlign:'left'}}>{r.pais}</td>
+      <td style={td}>{meses[r.mes-1]}/2027</td>
+      <td style={td}>{count(r.pares)}</td>
+      <td style={td}>{money(r.valor)}</td>
+      <td style={td}>{percent(r.participacao)}</td>
+      <td style={{...td,textAlign:'left'}}>{r.metodo}</td>
+     </tr>
+    )}
+    <tr style={{background:'#e8edf6',fontWeight:800,color:'#19334f'}}>
+     <td style={{...td,textAlign:'left'}}>TOTAL</td>
+     <td style={td}>{mesFiltro===0?'Ano 2027':`${meses[mesFiltro-1]}/2027`}</td>
+     <td style={td}>{count(totaisPrevisao.pares)}</td>
+     <td style={td}>{money(totaisPrevisao.valor)}</td>
+     <td style={td}>{percent(totaisPrevisao.peso)}</td>
+     <td style={{...td,textAlign:'left'}}>Total filtrado</td>
+    </tr>
+   </tbody>
+  </T>
+ </section>}
  <div style={{...section,fontSize:12,color:'#64748b'}}>{dados.avisos.map((t,i)=><p key={i}>{t}</p>)}</div>
  </>}</div></main>
 }
