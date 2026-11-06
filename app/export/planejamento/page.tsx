@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
 type Meta={pais:string;id:string;pares2025:number;valor2025:number;pares2026JanSet:number;valor2026JanSet:number;metaPares:number;metaValor:number;participacaoPares:number|null;participacaoValor:number|null;variacaoPares:number|null;variacaoValor:number|null};
 type Cruz={pais:string;cliente:string;entrada:string;entrega:string;pares:number;valor:number};
@@ -62,6 +62,7 @@ export default function Planejamento(){
   pares:cruzFiltrado.reduce((s,r)=>s+r.pares,0),
   valor:cruzFiltrado.reduce((s,r)=>s+r.valor,0)
  }),[cruzFiltrado]);
+ const [mostrarMatrizPrevisao,setMostrarMatrizPrevisao]=useState(false);
  const crescimento=metas.filter(r=>r.variacaoPares!==null||r.variacaoValor!==null).sort((a,b)=>(b.variacaoValor||0)-(a.variacaoValor||0));
  const T=({children}:{children:React.ReactNode})=><div style={{overflowX:'auto',maxHeight:620}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>{children}</table></div>;
  return <main style={{minHeight:'100vh',background:'#f2f5fa',fontFamily:'Arial, sans-serif',color:'#19334f',padding:'25px 3%'}}><div style={{maxWidth:1500,margin:'0 auto'}}>
@@ -141,7 +142,42 @@ export default function Planejamento(){
 </details>
   </div>
 
-  <T>
+    <div style={{display:'flex',gap:12,alignItems:'center',margin:'14px 0',flexWrap:'wrap'}}>
+   <button type="button" onClick={()=>setMostrarMatrizPrevisao(v=>!v)} style={{background:'#ee7100',color:'#fff',border:0,borderRadius:9,padding:'11px 16px',fontWeight:700,cursor:'pointer'}}>
+    {mostrarMatrizPrevisao?'Voltar para tabela':'Gerar matriz da seleÃ§Ã£o'}
+   </button>
+   {mostrarMatrizPrevisao&&<small style={{color:'#64748b'}}>Matriz de paÃ­ses por meses selecionados, com pares e valores</small>}
+  </div>
+  {mostrarMatrizPrevisao&&(()=>{
+   const mesesSelecionados=mesFiltro.length===0?meses.map((_,i)=>i+1):[...mesFiltro].sort((a,b)=>a-b);
+   const paisesMatriz=Array.from(new Set(linhasPrevisao.map(r=>r.pais))).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+   const soma=(paisNome:string|null,mesNumero:number|null,campo:'pares'|'valor')=>linhasPrevisao.reduce((total,r)=>total+( (paisNome===null||r.pais===paisNome)&&(mesNumero===null||r.mes===mesNumero) ?r[campo]:0),0);
+   return <div style={{overflowX:'auto',maxHeight:620,marginTop:12}}>
+    <table style={{borderCollapse:'collapse',width:'100%',fontSize:13,whiteSpace:'nowrap'}}>
+     <thead>
+      <tr><th rowSpan={2} style={{...th,textAlign:'left',position:'sticky',left:0,zIndex:3}}>PaÃ­s</th>
+       {mesesSelecionados.map(m=><th key={m} colSpan={2} style={{...th,textAlign:'center',borderLeft:'1px solid #cad3df'}}>{meses[m-1]}/2027</th>)}
+       <th colSpan={2} style={{...th,textAlign:'center',background:'#d3def0'}}>TOTAL</th>
+      </tr>
+      <tr>{mesesSelecionados.map(m=><React.Fragment key={m}><th style={{...th,borderLeft:'1px solid #cad3df'}}>Pares</th><th style={th}>Valor (R$)</th></React.Fragment>)}<th style={{...th,background:'#d3def0'}}>Pares</th><th style={{...th,background:'#d3def0'}}>Valor (R$)</th></tr>
+     </thead>
+     <tbody>
+      {paisesMatriz.map(nome=><tr key={nome}>
+       <td style={{...td,textAlign:'left',position:'sticky',left:0,background:'#fff',fontWeight:700}}>{nome}</td>
+       {mesesSelecionados.map(m=><React.Fragment key={m}><td style={{...td,borderLeft:'1px solid #edf0f5'}}>{count(soma(nome,m,'pares'))}</td><td style={td}>{money(soma(nome,m,'valor'))}</td></React.Fragment>)}
+       <td style={{...td,fontWeight:700,background:'#eff4fb'}}>{count(soma(nome,null,'pares'))}</td>
+       <td style={{...td,fontWeight:700,background:'#eff4fb'}}>{money(soma(nome,null,'valor'))}</td>
+      </tr>)}
+      <tr style={{fontWeight:800,background:'#e8edf6'}}>
+       <td style={{...td,textAlign:'left',position:'sticky',left:0,background:'#e8edf6'}}>TOTAL GERAL</td>
+       {mesesSelecionados.map(m=><React.Fragment key={m}><td style={td}>{count(soma(null,m,'pares'))}</td><td style={td}>{money(soma(null,m,'valor'))}</td></React.Fragment>)}
+       <td style={td}>{count(totaisPrevisao.pares)}</td><td style={td}>{money(totaisPrevisao.valor)}</td>
+      </tr>
+     </tbody>
+    </table>
+   </div>;
+  })()}
+  {!mostrarMatrizPrevisao&&<T>
    <thead>
     <tr>
      {['País','Mês','Pares previstos','Valor previsto','Peso sazonal','Método'].map((x,i)=>
@@ -169,7 +205,7 @@ export default function Planejamento(){
      <td style={{...td,textAlign:'left'}}>Total filtrado</td>
     </tr>
    </tbody>
-  </T>
+  </T>}
  </section>}
  <div style={{...section,fontSize:12,color:'#64748b'}}>{dados.avisos.map((t,i)=><p key={i}>{t}</p>)}</div>
  </>}</div></main>
