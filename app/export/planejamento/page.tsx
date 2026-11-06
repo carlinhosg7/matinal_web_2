@@ -15,13 +15,13 @@ const section:React.CSSProperties={background:'#fff',padding:22,borderRadius:14,
 export default function Planejamento(){
  const [tab,setTab]=useState('metas');const [dados,setDados]=useState<Payload|null>(null);const [erro,setErro]=useState('');const [pais,setPais]=useState('');const [carregando,setCarregando]=useState(true);
  useEffect(()=>{let ok=true;fetch('/api/export/planejamento',{cache:'no-store'}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.erro||`HTTP ${r.status}`);return j as Payload}).then(j=>{if(ok)setDados(j)}).catch(e=>{if(ok)setErro(String(e.message))}).finally(()=>{if(ok)setCarregando(false)});return()=>{ok=false}},[]);
- const [mesFiltro,setMesFiltro]=useState(0);
+ const [mesFiltro,setMesFiltro]=useState<number[]>([]);
  const metas=useMemo(()=>dados?.metas.filter(r=>!pais||r.id===pais)||[],[dados,pais]);
  const cruz=useMemo(()=>dados?.cruzamento.filter(r=>!pais||r.pais.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'').toUpperCase()===pais)||[],[dados,pais]);
  const prev=useMemo(()=>dados?.previsao.filter(r=>!pais||r.pais.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'').toUpperCase()===pais)||[],[dados,pais]);
  const linhasPrevisao=useMemo(
   ()=>prev.flatMap(r=>r.meses
-   .filter(m=>mesFiltro===0||m.mes===mesFiltro)
+   .filter(m=>mesFiltro.length===0||mesFiltro.includes(m.mes))
    .map(m=>({pais:r.pais,metodo:r.metodo,...m}))),
   [prev,mesFiltro]
  );
@@ -52,15 +52,34 @@ export default function Planejamento(){
 
   <div style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap',marginBottom:18}}>
    <label htmlFor="filtro-mes-2027" style={{fontWeight:700}}>Filtrar mês:</label>
-   <select
-    id="filtro-mes-2027"
-    value={mesFiltro}
-    onChange={e=>setMesFiltro(Number(e.target.value))}
-    style={{padding:11,minWidth:200,borderRadius:9,border:'1px solid #cad3df',background:'#fff',color:'#19334f'}}
-   >
-    <option value={0}>Todos os meses</option>
-    {meses.map((m,i)=><option key={i} value={i+1}>{m}/2027</option>)}
-   </select>
+   <details style={{position:'relative',minWidth:230}}>
+ <summary style={{padding:12,border:'1px solid #cad3df',borderRadius:9,cursor:'pointer',background:'#fff'}}>
+  {mesFiltro.length===0?'Todos os meses':`${mesFiltro.length} meses selecionados`}
+ </summary>
+ <div style={{position:'absolute',top:'100%',left:0,zIndex:50,background:'#fff',border:'1px solid #cad3df',borderRadius:9,padding:12,minWidth:230,maxHeight:350,overflowY:'auto',boxShadow:'0 8px 20px #0002'}}>
+  <label style={{display:'flex',gap:10,padding:8,fontWeight:700}}>
+   <input type="checkbox" checked={mesFiltro.length===0} onChange={()=>setMesFiltro([])}/>
+   Todos os meses
+  </label>
+  {meses.map((m,i)=>
+   <label key={i} style={{display:'flex',gap:10,padding:8,cursor:'pointer'}}>
+    <input
+     type="checkbox"
+     checked={mesFiltro.includes(i+1)}
+     onChange={()=>{
+      setMesFiltro(anterior=>{
+       const novos=anterior.includes(i+1)
+        ?anterior.filter(x=>x!==i+1)
+        :[...anterior,i+1].sort((a,b)=>a-b);
+       return novos.length===12?[]:novos;
+      });
+     }}
+    />
+    {m}/2027
+   </label>
+  )}
+ </div>
+</details>
   </div>
 
   <T>
@@ -84,7 +103,7 @@ export default function Planejamento(){
     )}
     <tr style={{background:'#e8edf6',fontWeight:800,color:'#19334f'}}>
      <td style={{...td,textAlign:'left'}}>TOTAL</td>
-     <td style={td}>{mesFiltro===0?'Ano 2027':`${meses[mesFiltro-1]}/2027`}</td>
+     <td style={td}>{mesFiltro.length===0?'Ano 2027':mesFiltro.length===1?`${meses[mesFiltro[0]-1]}/2027`:'Meses selecionados'}</td>
      <td style={td}>{count(totaisPrevisao.pares)}</td>
      <td style={td}>{money(totaisPrevisao.valor)}</td>
      <td style={td}>{percent(totaisPrevisao.peso)}</td>
