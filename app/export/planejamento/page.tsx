@@ -144,9 +144,9 @@ export default function Planejamento(){
 
     <div style={{display:'flex',gap:12,alignItems:'center',margin:'14px 0',flexWrap:'wrap'}}>
    <button type="button" onClick={()=>setMostrarMatrizPrevisao(v=>!v)} style={{background:'#ee7100',color:'#fff',border:0,borderRadius:9,padding:'11px 16px',fontWeight:700,cursor:'pointer'}}>
-    {mostrarMatrizPrevisao?'Voltar para tabela':'Gerar matriz da seleÃ§Ã£o'}
+    {mostrarMatrizPrevisao?'Voltar para tabela':'Gerar matriz da seleção'}
    </button>
-   {mostrarMatrizPrevisao&&<small style={{color:'#64748b'}}>Matriz de paÃ­ses por meses selecionados, com pares e valores</small>}
+   {mostrarMatrizPrevisao&&<small style={{color:'#64748b'}}>Matriz de países por meses selecionados, com pares e valores</small>}
   </div>
   {mostrarMatrizPrevisao&&(()=>{
    const mesesSelecionados=mesFiltro.length===0?meses.map((_,i)=>i+1):[...mesFiltro].sort((a,b)=>a-b);
@@ -155,7 +155,7 @@ export default function Planejamento(){
    return <div style={{overflowX:'auto',maxHeight:620,marginTop:12}}>
     <table style={{borderCollapse:'collapse',width:'100%',fontSize:13,whiteSpace:'nowrap'}}>
      <thead>
-      <tr><th rowSpan={2} style={{...th,textAlign:'left',position:'sticky',left:0,zIndex:3}}>PaÃ­s</th>
+      <tr><th rowSpan={2} style={{...th,textAlign:'left',position:'sticky',left:0,zIndex:3}}>País</th>
        {mesesSelecionados.map(m=><th key={m} colSpan={2} style={{...th,textAlign:'center',borderLeft:'1px solid #cad3df'}}>{meses[m-1]}/2027</th>)}
        <th colSpan={2} style={{...th,textAlign:'center',background:'#d3def0'}}>TOTAL</th>
       </tr>
