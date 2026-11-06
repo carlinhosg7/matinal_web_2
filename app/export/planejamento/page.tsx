@@ -73,11 +73,11 @@ export default function Planejamento(){
  {tab==='metas'&&<section style={section}><h2>Metas por país — 2027</h2><p>Participação na meta geral em pares e valores.</p><div style={{display:'flex',gap:16,flexWrap:'wrap',marginBottom:18}}><b>Meta total em pares: {count(dados.totalMeta.pares)}</b><b>Meta total em valores: {money(dados.totalMeta.valor)}</b></div><T><thead><tr>{['País','Meta pares','Meta valores','% pares total','% valores total'].map((x,i)=><th key={x} style={{...th,textAlign:i===0?'left':'right'}}>{x}</th>)}</tr></thead><tbody>{metas.map(r=><tr key={r.id}><td style={{...td,textAlign:'left'}}>{r.pais}</td><td style={td}>{count(r.metaPares)}</td><td style={td}>{money(r.metaValor)}</td><td style={td}>{percent(r.participacaoPares)}</td><td style={td}>{percent(r.participacaoValor)}</td></tr>)}</tbody></T></section>}
  {tab==='evolucao'&&<section style={section}><h2>Mercados em alta e queda</h2><p>Comparação disponível: 2025 completo × janeiro–setembro de 2026. O percentual ainda não é uma variação anual equivalente.</p><T><thead><tr>{['País','Pares 2025','Pares 2026 jan–set','Var. pares*','Valor 2025','Valor 2026 jan–set','Var. valores*'].map((x,i)=><th key={x} style={{...th,textAlign:i===0?'left':'right'}}>{x}</th>)}</tr></thead><tbody>{crescimento.map(r=><tr key={r.id}><td style={{...td,textAlign:'left'}}>{r.pais}</td><td style={td}>{count(r.pares2025)}</td><td style={td}>{count(r.pares2026JanSet)}</td><td style={{...td,color:(r.variacaoPares||0)<0?'#b91c1c':'#15803d'}}>{percent(r.variacaoPares)}</td><td style={td}>{money(r.valor2025)}</td><td style={td}>{money(r.valor2026JanSet)}</td><td style={{...td,color:(r.variacaoValor||0)<0?'#b91c1c':'#15803d'}}>{percent(r.variacaoValor)}</td></tr>)}</tbody></T><small>*Variação parcial 2026 Jan–Set em relação ao total 2025, sem anualização.</small></section>}
  {tab==='fluxo'&&<section style={section}>
-  <h2>Entrada Ã— Faturamento previsto</h2>
-  <p>MÃªs Cadastro = entrada do pedido. MÃªs Entrega = faturamento previsto. Valores por paÃ­s e cliente.</p>
+  <h2>Entrada × Faturamento previsto</h2>
+  <p>Mês Cadastro = entrada do pedido. Mês Entrega = faturamento previsto. Valores por país e cliente.</p>
   <div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap',marginBottom:18}}>
-   <FiltroMeses titulo="MÃªs entrada" selecionados={mesEntradaFiltro} alterar={setMesEntradaFiltro}/>
-   <FiltroMeses titulo="MÃªs faturamento" selecionados={mesEntregaFiltro} alterar={setMesEntregaFiltro}/>
+   <FiltroMeses titulo="Mês entrada" selecionados={mesEntradaFiltro} alterar={setMesEntradaFiltro}/>
+   <FiltroMeses titulo="Mês faturamento" selecionados={mesEntregaFiltro} alterar={setMesEntregaFiltro}/>
    <span style={{fontSize:12,color:'#64748b'}}>{count(cruzFiltrado.length)} registros filtrados</span>
   </div>
   <div style={{display:'flex',gap:18,flexWrap:'wrap',marginBottom:16,fontWeight:700}}>
@@ -85,7 +85,7 @@ export default function Planejamento(){
    <span>Total em valores: {money(totaisCruz.valor)}</span>
   </div>
   <T>
-   <thead><tr>{['PaÃ­s','Cliente','MÃªs Entrada','MÃªs Faturamento previsto','Pares','Valores'].map((x,i)=><th key={x} style={{...th,textAlign:i<2?'left':'right'}}>{x}</th>)}</tr></thead>
+   <thead><tr>{['País','Cliente','Mês Entrada','Mês Faturamento previsto','Pares','Valores'].map((x,i)=><th key={x} style={{...th,textAlign:i<2?'left':'right'}}>{x}</th>)}</tr></thead>
    <tbody>
     {cruzFiltrado.slice(0,1000).map((r,i)=><tr key={i}>
      <td style={{...td,textAlign:'left'}}>{r.pais}</td>
@@ -102,7 +102,7 @@ export default function Planejamento(){
     </tr>
    </tbody>
   </T>
-  {cruzFiltrado.length>1000&&<small>Exibindo as primeiras 1.000 combinaÃ§Ãµes. O TOTAL considera todos os {count(cruzFiltrado.length)} registros filtrados.</small>}
+  {cruzFiltrado.length>1000&&<small>Exibindo as primeiras 1.000 combinações. O TOTAL considera todos os {count(cruzFiltrado.length)} registros filtrados.</small>}
  </section>}
  {tab==='previsao'&&
  <section style={section}>
