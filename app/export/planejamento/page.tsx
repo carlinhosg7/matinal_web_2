@@ -63,6 +63,44 @@ export default function Planejamento(){
   valor:cruzFiltrado.reduce((s,r)=>s+r.valor,0)
  }),[cruzFiltrado]);
  const [mostrarMatrizPrevisao,setMostrarMatrizPrevisao]=useState(false);
+ const exportarMatrizExcel=async()=>{
+  const XLSX=await import('xlsx');
+  const selecionados=mesFiltro.length===0?meses.map((_,i)=>i+1):[...mesFiltro].sort((a,b)=>a-b);
+  const paises=Array.from(new Set(linhasPrevisao.map(r=>r.pais))).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const agregar=(nome:string|null,mes:number|null,campo:'pares'|'valor')=>
+   linhasPrevisao.reduce((total,r)=>total+((nome===null||r.pais===nome)&&(mes===null||r.mes===mes)?r[campo]:0),0);
+  const cabecalho1:(string|number)[]=['PaÃ­s'];
+  const cabecalho2:(string|number)[]=[''];
+  selecionados.forEach(m=>{cabecalho1.push(`${meses[m-1]}/2027`,'');cabecalho2.push('Pares','Valor (R$)')});
+  cabecalho1.push('TOTAL','');cabecalho2.push('Pares','Valor (R$)');
+  const linhas:(string|number)[][]=[cabecalho1,cabecalho2];
+  paises.forEach(nome=>{
+   const linha:(string|number)[]=[nome];
+   selecionados.forEach(m=>linha.push(agregar(nome,m,'pares'),agregar(nome,m,'valor')));
+   linha.push(agregar(nome,null,'pares'),agregar(nome,null,'valor'));
+   linhas.push(linha);
+  });
+  const total:(string|number)[]=['TOTAL GERAL'];
+  selecionados.forEach(m=>total.push(agregar(null,m,'pares'),agregar(null,m,'valor')));
+  total.push(agregar(null,null,'pares'),agregar(null,null,'valor'));
+  linhas.push(total);
+  const ws=XLSX.utils.aoa_to_sheet(linhas);
+  ws['!merges']=[...selecionados.map((_,i)=>({s:{r:0,c:1+2*i},e:{r:0,c:2+2*i}})),{s:{r:0,c:1+2*selecionados.length},e:{r:0,c:2+2*selecionados.length}}];
+  ws['!cols']=[{wch:28},...selecionados.flatMap(()=>[{wch:14},{wch:19}]),{wch:16},{wch:20}];
+  for(let r=2;r<linhas.length;r++){
+   for(let i=0;i<=selecionados.length;i++){
+    const colPares=1+i*2;
+    const colValor=colPares+1;
+    const celPares=XLSX.utils.encode_cell({r,c:colPares});
+    const celValor=XLSX.utils.encode_cell({r,c:colValor});
+    if(ws[celPares])ws[celPares].z='#,##0';
+    if(ws[celValor])ws[celValor].z='"R$ "#,##0.00';
+   }
+  }
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Matriz 2027');
+  XLSX.writeFile(wb,`matriz_previsao_2027_${pais||'todos_paises'}.xlsx`);
+ };
  const crescimento=metas.filter(r=>r.variacaoPares!==null||r.variacaoValor!==null).sort((a,b)=>(b.variacaoValor||0)-(a.variacaoValor||0));
  const T=({children}:{children:React.ReactNode})=><div style={{overflowX:'auto',maxHeight:620}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>{children}</table></div>;
  return <main style={{minHeight:'100vh',background:'#f2f5fa',fontFamily:'Arial, sans-serif',color:'#19334f',padding:'25px 3%'}}><div style={{maxWidth:1500,margin:'0 auto'}}>
@@ -146,7 +184,7 @@ export default function Planejamento(){
    <button type="button" onClick={()=>setMostrarMatrizPrevisao(v=>!v)} style={{background:'#ee7100',color:'#fff',border:0,borderRadius:9,padding:'11px 16px',fontWeight:700,cursor:'pointer'}}>
     {mostrarMatrizPrevisao?'Voltar para tabela':'Gerar matriz da seleção'}
    </button>
-   {mostrarMatrizPrevisao&&<small style={{color:'#64748b'}}>Matriz de países por meses selecionados, com pares e valores</small>}
+   {mostrarMatrizPrevisao&&<button type="button" onClick={exportarMatrizExcel} style={{background:'#167347',color:'#fff',padding:'10px 16px',border:0,borderRadius:8,fontWeight:700,cursor:'pointer',marginLeft:10}}>Exportar Excel (.xlsx)</button>}{mostrarMatrizPrevisao&&<small style={{color:'#64748b'}}>Matriz de países por meses selecionados, com pares e valores</small>}
   </div>
   {mostrarMatrizPrevisao&&(()=>{
    const mesesSelecionados=mesFiltro.length===0?meses.map((_,i)=>i+1):[...mesFiltro].sort((a,b)=>a-b);
