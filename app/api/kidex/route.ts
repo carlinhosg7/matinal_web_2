@@ -101,15 +101,126 @@ export async function GET() {
       l.anteriorPares+=numero(campo(r,'Qtd Venda'));
       l.anteriorValor+=numero(campo(r,'Vlr Venda'));
     }
+
+    // KIDEX_DEPARA_INTEGRADO_V1
+    // Cadastro oficial prevalece sobre supervisor das vendas.
+    const cadastroPorCodigo = new Map<string, {
+      supervisor: string;
+      nome: string;
+    }>();
+
     try {
-      const cadastro=ler(await abrir(localizar(dir,['CAD_REPRESENTANTE.xlsx'])),'CAD_REPRESENTANTE',1);
-      for(const r of cadastro){
-        const id=codigo(campo(r,'Codigo Representante','CODIGO_REP','CODREP','CODIGO'));
-        const l=mapa.get(id);if(!l)continue;
-        const sup=campo(r,'Supervisor');if(!vazio(sup))l.supervisor=String(sup).trim();
-        const nome=campo(r,'Nome Rep');if(!vazio(nome))l.nome=String(nome).trim();
+      const cadastro = ler(
+        await abrir(localizar(dir,['CAD_REPRESENTANTE.xlsx'])),
+        'CAD_REPRESENTANTE',
+        1
+      );
+
+      for (const r of cadastro) {
+        const id = codigo(campo(
+          r,
+          'Codigo Representante',
+          'CODIGO_REP',
+          'CODREP',
+          'CODIGO'
+        ));
+
+        if (!id) continue;
+
+        const supervisor = String(campo(r,'Supervisor') ?? '').trim();
+        const nome = String(campo(r,'Nome Rep') ?? '').trim();
+
+        cadastroPorCodigo.set(id,{supervisor,nome});
+
+        const linha = mapa.get(id);
+
+        if (linha) {
+          if (supervisor && normal(supervisor)!=='SEMSUPERVISOR') {
+            linha.supervisor = supervisor;
+          }
+          if (nome) linha.nome = nome;
+        }
       }
-    } catch(e) {avisos.push('Não foi possível aplicar CAD_REPRESENTANTE: '+String(e));}
+    } catch(e) {
+      avisos.push('Falha no cadastro: '+String(e));
+    }
+
+    // DE/PARA: preserva codigo e metas originais.
+    try {
+      const arquivoDepara = path.join(
+        process.cwd(),
+        'KIDEX_DE_PARA_REPRESENTANTES.xlsx'
+      );
+
+      if (!fs.existsSync(arquivoDepara)) {
+        avisos.push('DE/PARA nao encontrado: '+arquivoDepara);
+      } else {
+        const wbDepara = XLSX.readFile(arquivoDepara);
+        const abaDepara = wbDepara.SheetNames.find(
+          n => normal(n)===normal('DE_PARA')
+        );
+
+        if (!abaDepara) {
+          throw new Error('Aba DE_PARA nao encontrada');
+        }
+
+        const registros = XLSX.utils.sheet_to_json<
+          Record<string,unknown>
+        >(wbDepara.Sheets[abaDepara],{defval:''});
+
+        const correspondencias = new Map<string,string>();
+        const conflitos = new Set<string>();
+
+        for (const r of registros) {
+          const origem = codigo(r['Codigo origem']);
+          const atual = codigo(r['Codigo atual']);
+
+          if (!origem || !atual) continue;
+
+          if (
+            correspondencias.has(origem) &&
+            correspondencias.get(origem)!==atual
+          ) {
+            conflitos.add(origem);
+          } else {
+            correspondencias.set(origem,atual);
+          }
+        }
+
+        for (const id of conflitos) {
+          correspondencias.delete(id);
+        }
+
+        for (const linha of mapa.values()) {
+          if (
+            linha.supervisor &&
+            normal(linha.supervisor)!=='SEMSUPERVISOR'
+          ) continue;
+
+          const atual = correspondencias.get(linha.codigo);
+
+          if (!atual) continue;
+
+          const cadastroAtual = cadastroPorCodigo.get(atual);
+          const supervisor = cadastroAtual?.supervisor;
+
+          if (
+            supervisor &&
+            normal(supervisor)!=='SEMSUPERVISOR'
+          ) {
+            linha.supervisor = supervisor;
+          }
+        }
+
+        if (conflitos.size) {
+          avisos.push(
+            'Conflitos DE/PARA: '+[...conflitos].join(', ')
+          );
+        }
+      }
+    } catch(e) {
+      avisos.push('Falha ao aplicar DE/PARA: '+String(e));
+    }
     const linhas=[...mapa.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
     if(!linhas.length)throw new Error('Nenhum representante encontrado nas planilhas. Verifique os cabeçalhos e dados.');
     const supervisores=[...new Set(linhas.map(x=>x.supervisor))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
