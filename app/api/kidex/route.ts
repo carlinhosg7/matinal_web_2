@@ -96,6 +96,33 @@ export async function GET() {
     const atual=ler(wb,'KIDEX',3);
     const anterior:Registro[]=[];
     const avisos:string[]=[];
+
+    // KIDEX_CONVERSAO_REALIZADO_V1
+    // Consolida vendas antigas no representante atual.
+    // Nao modifica metas nem totais de realizado.
+    const mapaConversao = new Map<string,string>();
+    const codigosAtuais = new Set<string>();
+
+    for (const r of deparaRegistros) {
+      const origem = codigo(r['Codigo origem']);
+      const atual = codigo(r['Codigo atual']);
+
+      if (!origem || !atual) continue;
+
+      codigosAtuais.add(atual);
+      mapaConversao.set(origem,atual);
+    }
+
+    // O codigo 19 nunca deve ser convertido.
+    mapaConversao.set('19','19');
+
+    const converterRepKidex = (id:string):string => {
+      if (id === '19') return '19';
+      if (codigosAtuais.has(id)) return id;
+      return mapaConversao.get(id) || id;
+    };
+
+
     // Blocos fixos: 01-07, 08-14, 15-21, 22-28, 29-fim.
     const agora=new Date();
     const ultimoDia=new Date(agora.getFullYear(),agora.getMonth()+1,0).getDate();
@@ -109,7 +136,7 @@ export async function GET() {
        semanasDisponiveis.push(possuiDados);
       if(!possuiDados){avisos.push(`${nomeAba} ainda não disponível no arquivo MATINAL COMERIAL.`);continue;}
       for(const r of ler(wb,nomeAba,3)){
-        const id=codigo(campo(r,'Codigo Representante Carteira','Codigo Representante'));
+        const id=converterRepKidex(codigo(campo(r,'Codigo Representante Carteira','Codigo Representante')));
         if(!id||total(id))continue;
         const antigo=realizadosSemanais[s-1].get(id)||{pares:0,valor:0};
         antigo.pares+=numero(campo(r,'Qtd Venda'));
@@ -134,14 +161,14 @@ export async function GET() {
       l.metaValor+=numero(campo(r,'VALOR KIDEX'));
     }
     for(const r of atual){
-      const id=codigo(campo(r,'Codigo Representante Carteira','Codigo Representante'));
+      const id=converterRepKidex(codigo(campo(r,'Codigo Representante Carteira','Codigo Representante')));
       if(!id || total(id))continue;
       const l=obter(id,String(campo(r,'Representante Carteira','Representante')??id),String(campo(r,'Supervisor')??'SEM SUPERVISOR'));
       l.realPares+=numero(campo(r,'Qtd Venda'));
       l.realValor+=numero(campo(r,'Vlr Venda'));
     }
     for(const r of anterior){
-      const id=codigo(campo(r,'Codigo Representante Carteira','Codigo Representante'));
+      const id=converterRepKidex(codigo(campo(r,'Codigo Representante Carteira','Codigo Representante')));
       if(!id || total(id))continue;
       const l=obter(id,String(campo(r,'Representante Carteira','Representante')??id),String(campo(r,'Supervisor')??'SEM SUPERVISOR'));
       l.anteriorPares+=numero(campo(r,'Qtd Venda'));
