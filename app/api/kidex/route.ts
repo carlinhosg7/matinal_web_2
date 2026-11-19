@@ -266,6 +266,15 @@ export async function GET() {
       avisos.push('Falha no DE/PARA: ' + String(e));
     }
 
+
+    // KIDEX_SUPERVISOR_378_V1
+    // Vinculo comercial confirmado: Alexandre - Centro Oeste.
+    const rep378 = mapa.get('378');
+
+    if (rep378) {
+      rep378.supervisor = 'CENTRO OESTE';
+    }
+
     const linhas=[...mapa.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
     if(!linhas.length)throw new Error('Nenhum representante encontrado nas planilhas. Verifique os cabeçalhos e dados.');
     const supervisores=[...new Set(linhas.map(x=>x.supervisor))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
