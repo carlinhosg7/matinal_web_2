@@ -2,6 +2,7 @@ import {abrirDrive} from './drive-source';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as XLSX from 'xlsx';
+import deparaFat from '../data/kidex-depara.json';
 
 type Row = unknown[];
 export type LinhaFat = {codigo:string;nome:string;supervisor:string;metaValor:number;realValor:number;anteriorValor:number;metaPares:number;realPares:number;anteriorPares:number};
@@ -16,14 +17,56 @@ function periodoInfo(rows:Row[]){const s=rows.slice(0,3).flat().map(normal).find
 export async function carregarModeloFaturamento(){
  const cadRows=await ler('CAD_REPRESENTANTE.xlsx','CAD_REPRESENTANTE');const cadH=cabecalho(cadRows,['Codigo Representante','Supervisor']);const ci=col(cadH.cols,'Codigo Representante'),cs=col(cadH.cols,'Supervisor'),cn=col(cadH.cols,'Nome Rep');
  const cadastro=new Map<string,{nome:string;supervisor:string}>();for(const r of cadRows.slice(cadH.idx+1)){const c=codigo(r[ci]);if(c)cadastro.set(c,{nome:normal(r[cn]),supervisor:normal(r[cs])||'(Em branco)'})}
+
+ // FATURAMENTO_DEPARA_V1
+ // Consolida os codigos antigos sem modificar os totais.
+ const correspondencias = new Map<string,string>();
+
+ for (const r of deparaFat) {
+   const origem = codigo(r['Codigo origem']);
+   const atual = codigo(r['Codigo atual']);
+
+   if (origem && atual) {
+     correspondencias.set(origem, atual);
+   }
+ }
+
+ const converterRepFat = (id:string):string => {
+   if (id === '19') return '19';
+
+   // O cadastro oficial do proprio codigo tem prioridade.
+   if (cadastro.has(id)) return id;
+
+   return correspondencias.get(id) || id;
+ };
+
  const metaRows=await ler('META DE FATURAMENTO DO MES.xlsx','META DE FATURAMENTO DO MES');const mh=cabecalho(metaRows,['CODIGO_REP','META_VALOR','META_QUANTIDADE','ANO','MÊS']);
  const mi=col(mh.cols,'CODIGO_REP'),my=col(mh.cols,'ANO'),mm=col(mh.cols,'MÊS'),mv=col(mh.cols,'META_VALOR'),mp=col(mh.cols,'META_QUANTIDADE'),mid=mh.cols.indexOf('identificador');
  const fatRows=await ler('INDICADORES COMERCIAIS POR  FATURAMENTO.xlsx','MES');const fh=cabecalho(fatRows,['Codigo Representante','Vlr Venda','Vlr Venda AA','Qtd Venda','Qtd Venda AA']);const fi=col(fh.cols,'Codigo Representante'),fn=col(fh.cols,'Representante'),fv=col(fh.cols,'Vlr Venda'),fa=col(fh.cols,'Vlr Venda AA'),fp=col(fh.cols,'Qtd Venda'),fpa=col(fh.cols,'Qtd Venda AA');
  const periodo=periodoInfo(fatRows);if(!periodo)throw new Error('Período Data Entrega não encontrado na aba MES');const [dia,mes,ano]=periodo.inicio.split('/').map(Number);const [df,mf,af]=periodo.fim.split('/').map(Number);if(dia!==1||mes!==mf||ano!==af||df!==new Date(ano,mes,0).getDate())throw new Error('A aba MES não corresponde a um mês completo; confira o período exportado');
  const mapa=new Map<string,LinhaFat>();const get=(c:string,nome='')=>{let r=mapa.get(c);if(!r){const cad=cadastro.get(c);r={codigo:c,nome:cad?.nome||nome||`Representante ${c}`,supervisor:cad?.supervisor||'(Em branco)',metaValor:0,realValor:0,anteriorValor:0,metaPares:0,realPares:0,anteriorPares:0};mapa.set(c,r)}return r};
- const ids=new Set<string>();let metasValidas=0;for(const r of metaRows.slice(mh.idx+1)){const c=codigo(r[mi]);if(!c||num(r[my])!==ano||num(r[mm])!==mes)continue;const id=mid>=0?normal(r[mid]):'';if(id&&ids.has(id))continue;if(id)ids.add(id);const x=get(c);x.metaValor+=num(r[mv]);x.metaPares+=num(r[mp]);metasValidas++}
- let vendasValidas=0;for(const r of fatRows.slice(fh.idx+1)){const c=codigo(r[fi]);if(!c)continue;const x=get(c,normal(r[fn]));x.realValor+=num(r[fv]);x.anteriorValor+=num(r[fa]);x.realPares+=num(r[fp]);x.anteriorPares+=num(r[fpa]);vendasValidas++}
+ const ids=new Set<string>();let metasValidas=0;for(const r of metaRows.slice(mh.idx+1)){const c=converterRepFat(codigo(r[mi]));if(!c||num(r[my])!==ano||num(r[mm])!==mes)continue;const id=mid>=0?normal(r[mid]):'';if(id&&ids.has(id))continue;if(id)ids.add(id);const x=get(c);x.metaValor+=num(r[mv]);x.metaPares+=num(r[mp]);metasValidas++}
+ let vendasValidas=0;for(const r of fatRows.slice(fh.idx+1)){const c=converterRepFat(codigo(r[fi]));if(!c)continue;const x=get(c,normal(r[fn]));x.realValor+=num(r[fv]);x.anteriorValor+=num(r[fa]);x.realPares+=num(r[fp]);x.anteriorPares+=num(r[fpa]);vendasValidas++}
+
+ // FATURAMENTO_AJUSTE_SUPERVISORES_V2
+
+ // Alexandre: supervisor confirmado.
+ const alexandre = mapa.get('378');
+
+ if (alexandre) {
+   alexandre.nome = '378-Alexandre';
+   alexandre.supervisor = 'CENTRO OESTE';
+ }
+
+ // Codigo atual 310: supervisor ainda nao confirmado.
+ const rep310 = mapa.get('310');
+
+ if (rep310) {
+   rep310.nome = '310 - CADASTRO PENDENTE';
+   rep310.supervisor = '(Em branco)';
+ }
+
  const supervisores=[...new Set([...cadastro.values()].map(r=>r.supervisor))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
- const linhas=[...mapa.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+ const linhas=[...mapa.values()].filter(r=>r.metaValor!==0||r.realValor!==0||r.anteriorValor!==0||r.metaPares!==0||r.realPares!==0||r.anteriorPares!==0).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
  return {linhas,supervisores,periodo:`${periodo.inicio} a ${periodo.fim}`,mes,ano,metasValidas,vendasValidas,semCadastro:linhas.filter(r=>!cadastro.has(r.codigo)).map(r=>r.codigo)};
 }

@@ -754,5 +754,33 @@
     "Supervisor confirmado": "",
     "Validacao": "REGIONAL CONFIRMADA",
     "Regional": "EXPORTACAO"
+  },
+  {
+    "Codigo origem": "302",
+    "Codigo atual": "299",
+    "Supervisor confirmado": "",
+    "Validacao": "CONFIRMADO",
+    "Regional": ""
+  },
+  {
+    "Codigo origem": "309",
+    "Codigo atual": "310",
+    "Supervisor confirmado": "",
+    "Validacao": "CONFIRMADO",
+    "Regional": ""
+  },
+  {
+    "Codigo origem": "329",
+    "Codigo atual": "282",
+    "Supervisor confirmado": "",
+    "Validacao": "CONFIRMADO",
+    "Regional": ""
+  },
+  {
+    "Codigo origem": "333",
+    "Codigo atual": "282",
+    "Supervisor confirmado": "",
+    "Validacao": "CONFIRMADO",
+    "Regional": ""
   }
 ]
