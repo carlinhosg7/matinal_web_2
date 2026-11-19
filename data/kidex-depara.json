@@ -1,0 +1,758 @@
+[
+  {
+    "Codigo origem": "11",
+    "Codigo atual": "11",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "CENTRO OESTE"
+  },
+  {
+    "Codigo origem": "15",
+    "Codigo atual": "15",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "19",
+    "Codigo atual": "19",
+    "Supervisor confirmado": "",
+    "Validacao": "CONFIRMADO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "23",
+    "Codigo atual": "23",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "24",
+    "Codigo atual": "378",
+    "Supervisor confirmado": "",
+    "Validacao": "REGIONAL CONFIRMADA",
+    "Regional": "CENTRO OESTE"
+  },
+  {
+    "Codigo origem": "31",
+    "Codigo atual": "31",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "34",
+    "Codigo atual": "34",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "37",
+    "Codigo atual": "369",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "38",
+    "Codigo atual": "38",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "39",
+    "Codigo atual": "39",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SPC"
+  },
+  {
+    "Codigo origem": "41",
+    "Codigo atual": "41",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "45",
+    "Codigo atual": "45",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "46",
+    "Codigo atual": "335",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "53",
+    "Codigo atual": "53",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "61",
+    "Codigo atual": "61",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "65",
+    "Codigo atual": "317",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "CENTRO OESTE"
+  },
+  {
+    "Codigo origem": "74",
+    "Codigo atual": "74",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "93",
+    "Codigo atual": "370",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "143",
+    "Codigo atual": "143",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "153",
+    "Codigo atual": "292",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "163",
+    "Codigo atual": "321",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "167",
+    "Codigo atual": "167",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "171",
+    "Codigo atual": "371",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "178",
+    "Codigo atual": "178",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "185",
+    "Codigo atual": "345",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "187",
+    "Codigo atual": "187",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "192",
+    "Codigo atual": "301",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "194",
+    "Codigo atual": "194",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "197",
+    "Codigo atual": "197",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "208",
+    "Codigo atual": "208",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "211",
+    "Codigo atual": "317",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "CENTRO OESTE"
+  },
+  {
+    "Codigo origem": "217",
+    "Codigo atual": "217",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "218",
+    "Codigo atual": "218",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "231",
+    "Codigo atual": "368",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "232",
+    "Codigo atual": "232",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "236",
+    "Codigo atual": "345",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "238",
+    "Codigo atual": "282",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPC"
+  },
+  {
+    "Codigo origem": "239",
+    "Codigo atual": "217",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "240",
+    "Codigo atual": "240",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "248",
+    "Codigo atual": "334",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "B2B"
+  },
+  {
+    "Codigo origem": "253",
+    "Codigo atual": "337",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "259",
+    "Codigo atual": "345",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "260",
+    "Codigo atual": "297",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "261",
+    "Codigo atual": "261",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "CENTRO OESTE"
+  },
+  {
+    "Codigo origem": "264",
+    "Codigo atual": "264",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "B2B"
+  },
+  {
+    "Codigo origem": "266",
+    "Codigo atual": "266",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "CENTRO OESTE"
+  },
+  {
+    "Codigo origem": "267",
+    "Codigo atual": "267",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "270",
+    "Codigo atual": "270",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "273",
+    "Codigo atual": "273",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "B2B"
+  },
+  {
+    "Codigo origem": "277",
+    "Codigo atual": "315",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "279",
+    "Codigo atual": "292",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "280",
+    "Codigo atual": "345",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "282",
+    "Codigo atual": "282",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SPC"
+  },
+  {
+    "Codigo origem": "283",
+    "Codigo atual": "282",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPC"
+  },
+  {
+    "Codigo origem": "291",
+    "Codigo atual": "327",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "292",
+    "Codigo atual": "292",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "294",
+    "Codigo atual": "321",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "296",
+    "Codigo atual": "296",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "B2B"
+  },
+  {
+    "Codigo origem": "297",
+    "Codigo atual": "297",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "298",
+    "Codigo atual": "217",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "299",
+    "Codigo atual": "299",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "300",
+    "Codigo atual": "369",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "301",
+    "Codigo atual": "301",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "308",
+    "Codigo atual": "337",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "311",
+    "Codigo atual": "345",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "313",
+    "Codigo atual": "315",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "314",
+    "Codigo atual": "315",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "315",
+    "Codigo atual": "315",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "316",
+    "Codigo atual": "378",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "CENTRO OESTE"
+  },
+  {
+    "Codigo origem": "317",
+    "Codigo atual": "317",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "CENTRO OESTE"
+  },
+  {
+    "Codigo origem": "318",
+    "Codigo atual": "369",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "320",
+    "Codigo atual": "369",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "321",
+    "Codigo atual": "321",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "322",
+    "Codigo atual": "327",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "324",
+    "Codigo atual": "264",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "B2B"
+  },
+  {
+    "Codigo origem": "326",
+    "Codigo atual": "345",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "327",
+    "Codigo atual": "327",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "328",
+    "Codigo atual": "345",
+    "Supervisor confirmado": "",
+    "Validacao": "VALIDAR VINCULO",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "331",
+    "Codigo atual": "331",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SPC"
+  },
+  {
+    "Codigo origem": "334",
+    "Codigo atual": "334",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "B2B"
+  },
+  {
+    "Codigo origem": "335",
+    "Codigo atual": "335",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "337",
+    "Codigo atual": "337",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "NORTE / NORDESTE"
+  },
+  {
+    "Codigo origem": "345",
+    "Codigo atual": "345",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SPI"
+  },
+  {
+    "Codigo origem": "349",
+    "Codigo atual": "349",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - SP/SUL"
+  },
+  {
+    "Codigo origem": "351",
+    "Codigo atual": "351",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - CEO/REM"
+  },
+  {
+    "Codigo origem": "355",
+    "Codigo atual": "355",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - NORTE/NORDESTE"
+  },
+  {
+    "Codigo origem": "356",
+    "Codigo atual": "356",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - CEO/REM"
+  },
+  {
+    "Codigo origem": "357",
+    "Codigo atual": "357",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - SP/SUL"
+  },
+  {
+    "Codigo origem": "358",
+    "Codigo atual": "358",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - CEO/REM"
+  },
+  {
+    "Codigo origem": "360",
+    "Codigo atual": "360",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - SP/SUL"
+  },
+  {
+    "Codigo origem": "361",
+    "Codigo atual": "361",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - SP/SUL"
+  },
+  {
+    "Codigo origem": "363",
+    "Codigo atual": "363",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - NORTE/NORDESTE"
+  },
+  {
+    "Codigo origem": "364",
+    "Codigo atual": "364",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - NORTE/NORDESTE"
+  },
+  {
+    "Codigo origem": "366",
+    "Codigo atual": "366",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - SP/SUL"
+  },
+  {
+    "Codigo origem": "367",
+    "Codigo atual": "367",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - NORTE/NORDESTE"
+  },
+  {
+    "Codigo origem": "368",
+    "Codigo atual": "368",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "369",
+    "Codigo atual": "369",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "370",
+    "Codigo atual": "370",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "SUL"
+  },
+  {
+    "Codigo origem": "371",
+    "Codigo atual": "371",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "REM"
+  },
+  {
+    "Codigo origem": "373",
+    "Codigo atual": "373",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - CEO/REM"
+  },
+  {
+    "Codigo origem": "376",
+    "Codigo atual": "376",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - CEO/REM"
+  },
+  {
+    "Codigo origem": "377",
+    "Codigo atual": "377",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "RN - SP/SUL"
+  },
+  {
+    "Codigo origem": "378",
+    "Codigo atual": "378",
+    "Supervisor confirmado": "",
+    "Validacao": "CADASTRO ATUAL",
+    "Regional": "CENTRO OESTE"
+  },
+  {
+    "Codigo origem": "49",
+    "Codigo atual": "299",
+    "Supervisor confirmado": "",
+    "Validacao": "CONFIRMADO",
+    "Regional": ""
+  },
+  {
+    "Codigo origem": "226",
+    "Codigo atual": "299",
+    "Supervisor confirmado": "",
+    "Validacao": "CONFIRMADO",
+    "Regional": ""
+  },
+  {
+    "Codigo origem": "271",
+    "Codigo atual": "194",
+    "Supervisor confirmado": "",
+    "Validacao": "CONFIRMADO",
+    "Regional": ""
+  },
+  {
+    "Codigo origem": "295",
+    "Codigo atual": "297",
+    "Supervisor confirmado": "",
+    "Validacao": "CONFIRMADO",
+    "Regional": ""
+  },
+  {
+    "Codigo origem": "64",
+    "Codigo atual": "64",
+    "Supervisor confirmado": "",
+    "Validacao": "REGIONAL CONFIRMADA",
+    "Regional": "EXPORTACAO"
+  }
+]

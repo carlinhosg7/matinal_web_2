@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as XLSX from 'xlsx';
+import deparaRegistros from '../../../data/kidex-depara.json';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -145,82 +146,81 @@ export async function GET() {
       avisos.push('Falha no cadastro: '+String(e));
     }
 
-    // DE/PARA: preserva codigo e metas originais.
+
+    // KIDEX_DEPARA_JSON_V3
+    // Preserva metas e vendas nos codigos originais.
     try {
-      const arquivoDepara = path.join(
-        process.cwd(),
-        'KIDEX_DE_PARA_REPRESENTANTES.xlsx'
-      );
+      const registros = deparaRegistros as Record<string,unknown>[];
 
-      if (!fs.existsSync(arquivoDepara)) {
-        avisos.push('DE/PARA nao encontrado: '+arquivoDepara);
-      } else {
-        const wbDepara = XLSX.readFile(arquivoDepara);
-        const abaDepara = wbDepara.SheetNames.find(
-          n => normal(n)===normal('DE_PARA')
-        );
+      const correspondencias = new Map<string, {
+        atual: string;
+        supervisor: string;
+      }>();
 
-        if (!abaDepara) {
-          throw new Error('Aba DE_PARA nao encontrada');
+      const conflitos = new Set<string>();
+
+      for (const r of registros) {
+        const origem = codigo(r['Codigo origem']);
+        const atual = codigo(r['Codigo atual']);
+
+        if (!origem || !atual) continue;
+
+        const anterior = correspondencias.get(origem);
+
+        if (anterior && anterior.atual !== atual) {
+          conflitos.add(origem);
+          continue;
         }
 
-        const registros = XLSX.utils.sheet_to_json<
-          Record<string,unknown>
-        >(wbDepara.Sheets[abaDepara],{defval:''});
+        correspondencias.set(origem, {
+          atual,
+          supervisor: String(r['Supervisor confirmado'] ?? '').trim()
+        });
+      }
 
-        const correspondencias = new Map<string,string>();
-        const conflitos = new Set<string>();
+      for (const id of conflitos) {
+        correspondencias.delete(id);
+      }
 
-        for (const r of registros) {
-          const origem = codigo(r['Codigo origem']);
-          const atual = codigo(r['Codigo atual']);
+      for (const linha of mapa.values()) {
+        if (
+          linha.supervisor &&
+          normal(linha.supervisor) !== 'SEMSUPERVISOR'
+        ) continue;
 
-          if (!origem || !atual) continue;
+        const vinculo = correspondencias.get(linha.codigo);
 
-          if (
-            correspondencias.has(origem) &&
-            correspondencias.get(origem)!==atual
-          ) {
-            conflitos.add(origem);
-          } else {
-            correspondencias.set(origem,atual);
-          }
-        }
+        if (!vinculo) continue;
 
-        for (const id of conflitos) {
-          correspondencias.delete(id);
-        }
+        const cadastroAtual = cadastroPorCodigo.get(vinculo.atual);
 
-        for (const linha of mapa.values()) {
-          if (
-            linha.supervisor &&
-            normal(linha.supervisor)!=='SEMSUPERVISOR'
-          ) continue;
+        const supervisor =
+          cadastroAtual?.supervisor &&
+          normal(cadastroAtual.supervisor) !== 'SEMSUPERVISOR'
+            ? cadastroAtual.supervisor
+            : vinculo.supervisor;
 
-          const atual = correspondencias.get(linha.codigo);
-
-          if (!atual) continue;
-
-          const cadastroAtual = cadastroPorCodigo.get(atual);
-          const supervisor = cadastroAtual?.supervisor;
-
-          if (
-            supervisor &&
-            normal(supervisor)!=='SEMSUPERVISOR'
-          ) {
-            linha.supervisor = supervisor;
-          }
-        }
-
-        if (conflitos.size) {
-          avisos.push(
-            'Conflitos DE/PARA: '+[...conflitos].join(', ')
-          );
+        if (
+          supervisor &&
+          normal(supervisor) !== 'SEMSUPERVISOR'
+        ) {
+          linha.supervisor = supervisor;
         }
       }
-    } catch(e) {
-      avisos.push('Falha ao aplicar DE/PARA: '+String(e));
+
+      avisos.push(
+        'DE/PARA JSON carregado: ' + registros.length + ' registros'
+      );
+
+      if (conflitos.size) {
+        avisos.push(
+          'Conflitos DE/PARA: ' + [...conflitos].join(', ')
+        );
+      }
+    } catch (e) {
+      avisos.push('Falha no DE/PARA: ' + String(e));
     }
+
     const linhas=[...mapa.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
     if(!linhas.length)throw new Error('Nenhum representante encontrado nas planilhas. Verifique os cabeçalhos e dados.');
     const supervisores=[...new Set(linhas.map(x=>x.supervisor))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
