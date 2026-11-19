@@ -41,12 +41,57 @@ export async function GET() {
     const metaFile=localizar(dir,['META ENTRADA C KIDEX.xlsx']);
     const matinalFile=localizar(dir,['MATINAL COMERIAL.xlsx','MATINAL COMERCIAL.xlsx']);
     const metaWb=await abrir(metaFile);
-    const metaAba=metaWb.SheetNames.find(n=>normal(n)===normal('Folha 1'));
-    if(!metaAba)throw new Error('Aba Folha 1 não encontrada no arquivo de metas KIDEX');
-    const metaMatriz=XLSX.utils.sheet_to_json<unknown[]>(metaWb.Sheets[metaAba],{header:1,defval:'',raw:true});
-    const meta:Registro[]=metaMatriz.slice(2).filter(r=>!vazio(r[0])&&!total(String(r[0]))).map(r=>({
-      CODIGOREPRESENTANTE:r[0], REPRESENTANTE:r[1], PARESKIDEX:r[8], VALORKIDEX:r[9]
-    }));
+
+    // KIDEX_META_COMPETENCIA_V1
+    // Ler somente Mes Atual_MAIO_23, nunca Folha 1.
+    const metaAba = metaWb.SheetNames.find(
+      n => normal(n) === normal('Mes Atual_MAIO_23')
+    );
+
+    if (!metaAba) {
+      throw new Error('Aba Mes Atual_MAIO_23 nao encontrada');
+    }
+
+    const agoraBR = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: 'numeric'
+    }).formatToParts(new Date());
+
+    const anoAtual = Number(
+      agoraBR.find(p => p.type === 'year')?.value
+    );
+
+    const mesAtual = Number(
+      agoraBR.find(p => p.type === 'month')?.value
+    );
+
+    const registrosMeta = ler(metaWb, metaAba, 1);
+
+    const meta: Registro[] = registrosMeta
+      .filter(r =>
+        numero(campo(r,'ANO')) === anoAtual &&
+        numero(campo(r,'M?S','MES')) === mesAtual &&
+        numero(campo(r,'ID_TIPO_PEDIDO')) === 4
+      )
+      .map(r => ({
+        CODIGOREPRESENTANTE: campo(r,'CODIGO_REP'),
+        REPRESENTANTE: campo(r,'REP'),
+        PARESKIDEX: campo(r,'META_QUANTIDADE'),
+        VALORKIDEX: campo(r,'META_VALOR')
+      }))
+      .filter(r =>
+        !!codigo(r.CODIGOREPRESENTANTE) &&
+        !total(codigo(r.CODIGOREPRESENTANTE))
+      );
+
+    if (!meta.length) {
+      throw new Error(
+        'Nenhuma meta KIDEX encontrada na competencia ' +
+        mesAtual + '/' + anoAtual
+      );
+    }
+
     const wb=await abrir(matinalFile);
     const atual=ler(wb,'KIDEX',3);
     const anterior:Registro[]=[];
