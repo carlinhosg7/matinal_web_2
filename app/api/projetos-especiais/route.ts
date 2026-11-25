@@ -34,7 +34,7 @@ function encontrar(_dir:string,nomes:string[]){return encontrarDrive(nomes)}
 async function abrir(file:string){return abrirDrive(file)}
 function ler(w:XLSX.WorkBook,aba:string,cab:number){const n=w.SheetNames.find(n=>norm(n)===norm(aba));if(!n)throw Error(`Aba ${aba} ausente. Disponíveis: ${w.SheetNames.join(', ')}`);const m=XLSX.utils.sheet_to_json<unknown[]>(w.Sheets[n],{header:1,raw:true,defval:''});const h=(m[cab-1]||[]).map(norm);return m.slice(cab).filter(r=>r.some(v=>v!==''&&v!==null)).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]]).filter(([k])=>!!k))) as Registro[]}
 function campo(r:Registro,...nomes:string[]){for(const n of nomes){const v=r[norm(n)];if(v!==undefined&&v!==null&&String(v).trim()!=='')return v}return undefined}
-const config=[{id:'brincaflex',nome:'BRINCAFLEX',meta:'META BRINCAFLEX',torre:'BRINCA FLEX'},{id:'veloz',nome:'VELOZ',meta:'META VELOZ',torre:'VELOZ'},{id:'impulso',nome:'IMPULSO 2',meta:'META IMPULSO',torre:'K360 - IMPULSO 2'},{id:'localize',nome:'LOCALIZE',meta:'META LOCALIZE',torre:'LOCALIZE'},{id:'luzes',nome:'KIDY LUZES',meta:'Meta Luzes',torre:'LUZES'},{id:'rebecca',nome:'REBECCA BONBON',meta:'Forcast RB',torre:'REBECA BOMBOM'}];
+const config=[{id:'brincaflex',nome:'BRINCAFLEX',meta:'META BRINCAFLEX',torre:'BRINCA FLEX'},{id:'veloz',nome:'VELOZ',meta:'META VELOZ',torre:'VELOZ'},{id:'impulso',nome:'IMPULSO 2',meta:'META IMPULSO',torre:'K360 - IMPULSO 2'},{id:'localize',nome:'LOCALIZE',meta:'META LOCALIZE',torre:'LOCALIZE'},{id:'luzes',nome:'KIDY LUZES',meta:'Meta Luzes',torre:'LUZES'},{id:'rebecca',nome:'REBECCA BONBON',meta:'Forcast RB',torre:'REBECA BOMBOM'},{id:'carnaval',nome:'CAMPANHA FOLIA',meta:'',torre:'CARNAVAL 2026-2027'},{id:'cereja',nome:'KIDY CEREJA',meta:'',torre:'CEREJA'},{id:'sapatilha',nome:'SAPATILHA',meta:'',torre:'SAPATILHAS'}];
 export async function GET(){try{
  const dir=(process.env.MATINAL_PROJETOS_DIR||'I:\\Meu Drive\\Dados Matinal\\DADOS_2').trim();
  // Permite separar a pasta de projetos das demais bases.
@@ -47,7 +47,11 @@ export async function GET(){try{
  const [lw,rw]=await Promise.all([abrir(luzesFile),abrir(rebeccaFile)]);
  const cadastro=await cadastroRepresentantes(dir);
  const projetos=config.map(cfg=>{
-  const metas=ler(cfg.id==='luzes'?lw:cfg.id==='rebecca'?rw:mw,cfg.meta,cfg.id==='rebecca'?3:1),vendas=ler(tw,cfg.torre,3);
+  const possuiMeta=Boolean(cfg.meta);
+  const metas=possuiMeta
+   ? ler(cfg.id==='luzes'?lw:cfg.id==='rebecca'?rw:mw,cfg.meta,cfg.id==='rebecca'?3:1)
+   : [];
+  const vendas=ler(tw,cfg.torre,3);
   const mapa=new Map<string,Linha>();const grupos=new Map<string,Set<string>>();
   const obter=(id:string)=>{let l=mapa.get(id);if(!l){l={codigo:id,nome:id,supervisor:'SEM SUPERVISOR',metaClientes:0,metaPares:0,metaValor:0,realClientes:0,realPares:0,realValor:0};mapa.set(id,l)}return l};
   let somaPares=0,somaValores=0;
@@ -60,7 +64,7 @@ export async function GET(){try{
    const n=campo(r,'Representante');if(n)l.nome=String(n).trim();const sup=campo(r,'Supervisor');if(sup)l.supervisor=String(sup).trim()}
   for(const l of mapa.values()){const cad=cadastro.get(l.codigo);if(cad){l.supervisor=cad.supervisor;if(cad.nome)l.nome=cad.nome}}
   const linhas=[...mapa.values()].map(l=>({...l,realClientes:grupos.get(l.codigo)?.size||0,metaValor:l.metaPares*pmv})).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  return {id:cfg.id,nome:cfg.nome,pmv,linhas,registrosMetas:metas.length,registrosTorre:vendas.length};
+  return {id:cfg.id,nome:cfg.nome,pmv,possuiMeta,linhas,registrosMetas:metas.length,registrosTorre:vendas.length};
  });
  return NextResponse.json({projetos,supervisores:[...new Set(projetos.flatMap(p=>p.linhas.map(l=>l.supervisor)))].sort(),arquivos:{metas:path.basename(mf),torre:path.basename(tf)},avisos:['Realizado Clientes = grupos cliente distintos por representante nas abas da TORRE 02. A contagem nacional é a soma das contagens por representante; um grupo associado a dois representantes será contado duas vezes.','Metas em reais = meta de pares × preço médio nacional ponderado de cada projeto (valor total / pares totais).','Rebecca Bonbon: metas I (clientes) e K (pares) da aba Forcast RB. Luzes: pares G da aba Meta Luzes e clientes = pares / 48; F é o percentual de distribuição já aplicado à coluna G.']});
  }catch(e){console.error('[API PROJETOS ESPECIAIS]',e);return NextResponse.json({erro:e instanceof Error?e.message:String(e)},{status:500})}}

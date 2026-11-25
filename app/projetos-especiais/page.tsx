@@ -4,10 +4,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import SortableTable from '../../components/SortableTable';
 type Linha={codigo:string;nome:string;supervisor:string;metaClientes:number;metaPares:number;metaValor:number;realClientes:number;realPares:number;realValor:number};
-type Projeto={id:string;nome:string;pmv:number;linhas:Linha[]};
+type Projeto={id:string;nome:string;pmv:number;possuiMeta?:boolean;linhas:Linha[]};
 type Api={projetos:Projeto[];supervisores:string[];avisos?:string[];erro?:string};
 const nav=[['FATURAMENTO','/faturamento'],['ENTRADA','/entrada'],['COBERTURA','/cobertura'],['PROJETOS ESPECIAIS','/projetos-especiais'],['BRINQUEDOS','/brinquedos']];
-const logos=[{id:'brincaflex',nome:'BRINCA FLEX',src:'/projetos/brincaflex.png'},{id:'veloz',nome:'VELOZ',src:'/projetos/veloz.png'},{id:'impulso',nome:'IMPULSO 2',src:'/projetos/impulso.png'},{id:'localize',nome:'LOCALIZE',src:'/projetos/localize.png'},{id:'luzes',nome:'KIDY LUZES',src:'/projetos/luzes.png'},{id:'rebecca',nome:'REBECCA BONBON',src:'/projetos/rebecca.png'}];
+const logos=[{id:'brincaflex',nome:'BRINCA FLEX',src:'/projetos/brincaflex.png'},{id:'veloz',nome:'VELOZ',src:'/projetos/veloz.png'},{id:'impulso',nome:'IMPULSO 2',src:'/projetos/impulso.png'},{id:'localize',nome:'LOCALIZE',src:'/projetos/localize.png'},{id:'luzes',nome:'KIDY LUZES',src:'/projetos/luzes.png'},{id:'rebecca',nome:'REBECCA BONBON',src:'/projetos/rebecca.png'},{id:'carnaval',nome:'CAMPANHA FOLIA',src:'/projetos/carnaval.png'},{id:'cereja',nome:'KIDY CEREJA',src:'/projetos/cereja.png'},{id:'sapatilha',nome:'SAPATILHA',src:'/projetos/sapatilha.png'}];
 const n=(v:number)=>v.toLocaleString('pt-BR',{maximumFractionDigits:0});
 const dinheiro=(v:number)=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const percentual=(v:number,m:number)=>m?`${(100*v/m).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}%`:'—';
@@ -17,6 +17,8 @@ export default function ProjetosEspeciais(){
  const [dados,setDados]=useState<Api|null>(null),[erro,setErro]=useState(''),[projeto,setProjeto]=useState('brincaflex'),[supervisores,setSupervisores]=useState<string[]>([]),[rep,setRep]=useState(''),[mostrarSup,setMostrarSup]=useState(true),[mostrarRep,setMostrarRep]=useState(true);
  useEffect(()=>{fetch('/api/projetos-especiais',{cache:'no-store'}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.erro||'Falha ao carregar');setDados(j)}).catch(e=>setErro(String(e.message||e)))},[]);
  const atual=dados?.projetos.find(p=>p.id===projeto);
+ const semMeta=atual?.possuiMeta===false;
+ const exibirMeta=(valor:string)=>semMeta?'?':valor;
  const base=useMemo(()=>atual?.linhas||[],[atual]);
  const disponiveis=useMemo(()=>base.filter(l=>!supervisores.length||supervisores.includes(l.supervisor)),[base,supervisores]);
  const linhas=useMemo(()=>disponiveis.filter(l=>!rep||l.codigo===rep),[disponiveis,rep]);
@@ -24,7 +26,7 @@ export default function ProjetosEspeciais(){
  const grupos=useMemo(()=>[...new Set(linhas.map(l=>l.supervisor))].sort().map(nome=>({nome,t:soma(linhas.filter(l=>l.supervisor===nome))})),[linhas]);
  const titulo=supervisores.length===0?'NACIONAL':supervisores.length===1?supervisores[0]:'REGIONAIS SELECIONADAS';
  const card=(rotulo:string,valor:string)=> <div className="pe-card"><span>{rotulo}</span><strong>{atual?valor:'—'}</strong></div>;
- const linhaTabela=(nome:string,t:ReturnType<typeof soma>,chave:string)=><tr key={chave}><td>{nome}</td><td>{n(t.metaPares)}</td><td>{n(t.realPares)}</td><td>{n(t.realPares-t.metaPares)}</td><td>{percentual(t.realPares,t.metaPares)}</td><td>{dinheiro(t.metaValor)}</td><td>{dinheiro(t.realValor)}</td><td>{dinheiro(t.realValor-t.metaValor)}</td><td>{percentual(t.realValor,t.metaValor)}</td><td>{n(t.metaClientes)}</td><td>{n(t.realClientes)}</td><td>{n(t.realClientes-t.metaClientes)}</td><td>{percentual(t.realClientes,t.metaClientes)}</td></tr>;
+ const linhaTabela=(nome:string,t:ReturnType<typeof soma>,chave:string)=><tr key={chave}><td>{nome}</td><td>{exibirMeta(n(t.metaPares))}</td><td>{n(t.realPares)}</td><td>{exibirMeta(n(t.realPares-t.metaPares))}</td><td>{exibirMeta(percentual(t.realPares,t.metaPares))}</td><td>{exibirMeta(dinheiro(t.metaValor))}</td><td>{dinheiro(t.realValor)}</td><td>{exibirMeta(dinheiro(t.realValor-t.metaValor))}</td><td>{exibirMeta(percentual(t.realValor,t.metaValor))}</td><td>{exibirMeta(n(t.metaClientes))}</td><td>{n(t.realClientes)}</td><td>{exibirMeta(n(t.realClientes-t.metaClientes))}</td><td>{exibirMeta(percentual(t.realClientes,t.metaClientes))}</td></tr>;
  const tabela=(por:'supervisor'|'representante')=><div className="pe-scroll"><SortableTable><thead><tr><th>{por==='supervisor'?'Supervisor':'Representante'}</th><th>Meta Pares</th><th>Realizado Pares</th><th>Dif. Pares</th><th>Î”%</th><th>Meta Valor</th><th>Realizado Valor</th><th>Dif. Valor</th><th>Î”%</th><th>Meta Clientes</th><th>Realizado Clientes</th><th>Dif. Clientes</th><th>Î”%</th></tr></thead><tbody>{por==='supervisor'?grupos.map(g=>linhaTabela(g.nome,g.t,g.nome)):linhas.map(l=>linhaTabela(`${l.codigo} - ${l.nome}`,l,l.codigo))}{linhaTabela('TOTAL',total,'total')}</tbody></SortableTable></div>;
  return <main className="pe-wrap">
  <nav className="pe-nav">{nav.map(([nome,url])=><Link href={url} key={url} className={url==='/projetos-especiais'?'active':''}>{nome}</Link>)}</nav>
@@ -36,7 +38,11 @@ export default function ProjetosEspeciais(){
  {erro&&<div className="pe-warning">Erro ao carregar: {erro}</div>}{!dados&&!erro&&<p>Carregando dados dos projetos...</p>}
  {!atual&&dados&&<p className="pe-warning">O mapeamento das metas e realizados deste projeto está em preparação. Nenhum valor será apresentado sem validação.</p>}
  <div className="pe-selected"><strong>{logos.find(l=>l.id===projeto)?.nome}</strong>{atual&&<span>Preço médio nacional ponderado: {dinheiro(atual.pmv)} / par</span>}</div>
- <section className="pe-kpis">{card('META PARES',n(total.metaPares))}{card('REALIZADO PARES',n(total.realPares))}{card('DIFERENÇA PARES',n(total.realPares-total.metaPares))}{card('â–² %',percentual(total.realPares,total.metaPares))}{card('META VALOR',dinheiro(total.metaValor))}{card('REALIZADO VALOR',dinheiro(total.realValor))}{card('DIFERENÇA VALOR',dinheiro(total.realValor-total.metaValor))}{card('â–² %',percentual(total.realValor,total.metaValor))}{card('META CLIENTES',n(total.metaClientes))}{card('REALIZADO CLIENTES',n(total.realClientes))}{card('DIFERENÇA CLIENTES',n(total.realClientes-total.metaClientes))}{card('â–² %',percentual(total.realClientes,total.metaClientes))}</section>
+ {semMeta&&<div className="pe-warning">
+      Metas ainda nao cadastradas para este projeto.
+      Os valores realizados estao disponiveis normalmente.
+    </div>}
+ <section className="pe-kpis">{card('META PARES',exibirMeta(n(total.metaPares)))}{card('REALIZADO PARES',n(total.realPares))}{card('DIFERENÇA PARES',exibirMeta(n(total.realPares-total.metaPares)))}{card('ATINGIMENTO %',exibirMeta(percentual(total.realPares,total.metaPares)))}{card('META VALOR',exibirMeta(dinheiro(total.metaValor)))}{card('REALIZADO VALOR',dinheiro(total.realValor))}{card('DIFERENÇA VALOR',exibirMeta(dinheiro(total.realValor-total.metaValor)))}{card('ATINGIMENTO %',exibirMeta(percentual(total.realValor,total.metaValor)))}{card('META CLIENTES',exibirMeta(n(total.metaClientes)))}{card('REALIZADO CLIENTES',n(total.realClientes))}{card('DIFERENÇA CLIENTES',exibirMeta(n(total.realClientes-total.metaClientes)))}{card('ATINGIMENTO %',exibirMeta(percentual(total.realClientes,total.metaClientes)))}</section>
  <div className="pe-controls"><button className="open" onClick={()=>{setMostrarSup(true);setMostrarRep(true)}}>ABRIR DADOS</button><button className="close" onClick={()=>{setMostrarSup(false);setMostrarRep(false)}}>FECHAR DADOS</button></div>
  <div className="pe-heading"><strong>DETALHAMENTO POR SUPERVISOR</strong><button onClick={()=>setMostrarSup(v=>!v)}>{mostrarSup?'OCULTAR SUPERVISORES':'EXIBIR SUPERVISORES'}</button></div>{mostrarSup&&atual&&tabela('supervisor')}
  <div className="pe-heading"><strong>DETALHAMENTO POR REPRESENTANTE</strong><button onClick={()=>setMostrarRep(v=>!v)}>{mostrarRep?'OCULTAR REPRESENTANTES':'EXIBIR REPRESENTANTES'}</button></div>{mostrarRep&&atual&&tabela('representante')}
